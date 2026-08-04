@@ -6,6 +6,8 @@ import { Compass, Send, Network, User, CornerDownLeft, Loader2 } from 'lucide-re
 import { Navbar } from '../../../components/Navbar';
 import { Footer } from '../../../components/Footer';
 
+const BASE_URL = 'http://localhost:8000';
+
 /* ─────────────────────────────────────────────
    Types
 ───────────────────────────────────────────── */
@@ -15,24 +17,6 @@ interface Message {
   text: string;
   ts: string;
 }
-
-/* ─────────────────────────────────────────────
-   Static seed conversation (Explorer-relevant)
-───────────────────────────────────────────── */
-const INITIAL_MESSAGES: Message[] = [
-  {
-    id: 'msg-1',
-    role: 'user',
-    text: 'What folder structure and entry points does this repo have?',
-    ts: '22:58',
-  },
-  {
-    id: 'msg-2',
-    role: 'assistant',
-    text: `Here's the full directory map I scanned:\n\n**Entry Points**\n- \`src/main.go\` — primary binary entrypoint, bootstraps the HTTP server and DI container\n- \`src/cmd/worker/main.go\` — background job runner (cron + queue consumers)\n\n**Key Folders**\n- \`src/auth/\` — authentication layer: \`jwt_verifier.go\`, \`session_store.go\`, \`oauth_handler.go\`\n- \`src/controllers/\` — HTTP handlers: \`user_controller.ts\`, \`repo_controller.ts\`, \`agent_controller.ts\`\n- \`src/services/\` — business logic: \`TokenService.ts\`, \`ASTParserService.ts\`, \`GraphBuilder.ts\`\n- \`src/repositories/\` — DB layer: \`UserRepository.ts\`, \`RefreshTokenRepository.ts\`\n- \`src/agents/\` — agent orchestration: \`ManagerAgent.ts\`, \`ExplorerAgent.ts\`, \`TraceAgent.ts\`\n- \`src/lib/\` — shared utilities, config loaders, logger\n\n**Dependency Graph Root**\n\`main.go → AuthMiddleware → UserController → UserService → UserRepository\`\n\nAST scan complete — **312 symbols** indexed across **47 files**.`,
-    ts: '22:58',
-  },
-];
 
 /* ─────────────────────────────────────────────
    Markdown-lite renderer (bold + inline code)
@@ -76,7 +60,6 @@ function RenderText({ text }: { text: string }) {
 ───────────────────────────────────────────── */
 function MessageBubble({ msg, index }: { msg: Message; index: number }) {
   const isUser = msg.role === 'user';
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -84,7 +67,6 @@ function MessageBubble({ msg, index }: { msg: Message; index: number }) {
       transition={{ duration: 0.35, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
       className={`flex gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
     >
-      {/* Avatar */}
       {isUser ? (
         <div className="shrink-0 w-8 h-8 rounded-full bg-[#E5E5E7] flex items-center justify-center">
           <User className="w-4 h-4 text-[#6B7280]" />
@@ -94,8 +76,6 @@ function MessageBubble({ msg, index }: { msg: Message; index: number }) {
           <Compass className="w-4 h-4 text-white" />
         </div>
       )}
-
-      {/* Bubble */}
       <div className={`flex flex-col gap-1 max-w-[82%] ${isUser ? 'items-end' : 'items-start'}`}>
         <div
           className={`px-4 py-3 rounded-2xl text-sm leading-relaxed font-sans ${
@@ -145,11 +125,52 @@ function TypingIndicator() {
    Main page
 ───────────────────────────────────────────── */
 export default function ExplorerAgentPage() {
-  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [repoUrl, setRepoUrl] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    // Load repo URL and any prior explorer result from session
+    const url = sessionStorage.getItem('repoatlas_url') ?? '';
+    setRepoUrl(url);
+
+    try {
+      const raw = sessionStorage.getItem('repoatlas_result');
+      if (raw) {
+        const result = JSON.parse(raw);
+        const explorerText: string | null =
+          typeof result.explorer === 'string' ? result.explorer : null;
+
+        const now = () => {
+          const d = new Date();
+          return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        };
+
+        if (explorerText) {
+          setMessages([
+            { id: 'seed-u', role: 'user', text: 'What folder structure and entry points does this repo have?', ts: now() },
+            { id: 'seed-a', role: 'assistant', text: explorerText, ts: now() },
+          ]);
+          return;
+        }
+      }
+    } catch { /* no session data */ }
+
+    // No session data — show welcome prompt
+    setMessages([
+      {
+        id: 'welcome',
+        role: 'assistant',
+        text: url
+          ? `Repo loaded: \`${url}\`\n\nAsk me anything about its structure, entry points, dependencies, or architecture.`
+          : 'No repo analyzed yet. Go back to the home page and paste a GitHub URL first.',
+        ts: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+      },
+    ]);
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -162,37 +183,35 @@ export default function ExplorerAgentPage() {
     return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const trimmed = inputValue.trim();
     if (!trimmed || isTyping) return;
 
-    const userMsg: Message = {
-      id: `msg-${Date.now()}-u`,
-      role: 'user',
-      text: trimmed,
-      ts: now(),
-    };
-
+    const userMsg: Message = { id: `msg-${Date.now()}-u`, role: 'user', text: trimmed, ts: now() };
     setMessages((prev) => [...prev, userMsg]);
     setInputValue('');
-
-    // Reset textarea height
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-    }
-
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
     setIsTyping(true);
 
-    setTimeout(() => {
-      const assistantMsg: Message = {
-        id: `msg-${Date.now()}-a`,
-        role: 'assistant',
-        text: "I'm currently in demo mode. In production, I'd scan the AST, map every symbol definition, and return a complete folder-level dependency graph with exact file paths and import chains.",
-        ts: now(),
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
+    try {
+      const res = await fetch(`${BASE_URL}/explorer/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ repo_path: repoUrl || 'unknown', query: trimmed }),
+      });
+      const data = await res.json();
+      const text = res.ok
+        ? (data.result ?? JSON.stringify(data))
+        : `Error ${res.status}: ${data.detail ?? 'Unknown error'}`;
+      setMessages((prev) => [...prev, { id: `msg-${Date.now()}-a`, role: 'assistant', text, ts: now() }]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        { id: `msg-${Date.now()}-a`, role: 'assistant', text: `Could not reach backend. Make sure it's running on ${BASE_URL}.`, ts: now() },
+      ]);
+    } finally {
       setIsTyping(false);
-    }, 1800);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -225,11 +244,8 @@ export default function ExplorerAgentPage() {
                   Pipeline Stage 03
                 </span>
                 <h1 className="text-lg font-bold text-[#111114] leading-none">Explorer Agent</h1>
-
               </div>
             </div>
-
-            {/* Live status pill */}
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#E5E5E7] bg-[#FAFAFA]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] animate-pulse" />
               <span className="text-[10px] font-mono text-[#6B7280] font-medium">Active Stream</span>
@@ -245,7 +261,6 @@ export default function ExplorerAgentPage() {
             {messages.map((msg, idx) => (
               <MessageBubble key={msg.id} msg={msg} index={idx} />
             ))}
-
             <AnimatePresence>
               {isTyping && <TypingIndicator />}
             </AnimatePresence>
@@ -269,7 +284,6 @@ export default function ExplorerAgentPage() {
                 className="flex-1 resize-none bg-transparent text-sm text-[#111114] placeholder-[#9CA3AF] font-sans px-2 py-1.5 focus:outline-none leading-relaxed disabled:opacity-50"
                 style={{ minHeight: '36px', maxHeight: '104px' }}
               />
-
               <motion.button
                 onClick={handleSend}
                 disabled={!inputValue.trim() || isTyping}
@@ -277,14 +291,9 @@ export default function ExplorerAgentPage() {
                 whileTap={{ scale: 0.95 }}
                 className="shrink-0 w-9 h-9 rounded-lg bg-[#2563EB] text-white flex items-center justify-center shadow-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#1D4ED8] transition-colors duration-200"
               >
-                {isTyping
-                  ? <Loader2 className="w-4 h-4 animate-spin" />
-                  : <Send className="w-4 h-4" />
-                }
+                {isTyping ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </motion.button>
             </div>
-
-            {/* Hint row */}
             <div className="flex items-center justify-between mt-2 px-1">
               <span className="text-[10px] font-mono text-[#9CA3AF] flex items-center gap-1">
                 <CornerDownLeft className="w-2.5 h-2.5" />

@@ -1,52 +1,30 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Bot, Sparkles, Activity, Code2, Database, ShieldCheck } from 'lucide-react';
+import { Search, Sparkles, Activity, Code2, Database, ShieldCheck } from 'lucide-react';
 import { Navbar } from '../../../components/Navbar';
 import { Footer } from '../../../components/Footer';
-
-/* ─────────────────────────────────────────────
-   Commit data (static seed — most recent first)
-───────────────────────────────────────────── */
-const COMMITS = [
-  { hash: 'a3f9c12', message: 'fix: resolve race condition in session token refresh', author: 'sara.k', time: '2h ago' },
-  { hash: 'b7e2d45', message: 'feat: add AST-level import graph to ExplorerAgent output', author: 'raj.m', time: '5h ago' },
-  { hash: 'c1d8f30', message: 'refactor: split UserController into auth + profile handlers', author: 'sara.k', time: '11h ago' },
-  { hash: 'e6a1b99', message: 'chore: upgrade framer-motion to 10.16 for layout animations', author: 'dev.bot', time: '1d ago' },
-  { hash: 'f0c3e77', message: 'fix: TraceAgent missing stack frame on DB timeout path', author: 'raj.m', time: '2d ago' },
-  { hash: '9b4d2a1', message: 'feat: ManagerAgent parallel sub-agent orchestration MVP', author: 'sara.k', time: '3d ago' },
-];
+import type { CommitEntry, ContributorEntry, TraceResult } from '../../../lib/api';
 
 /* ─────────────────────────────────────────────
    Animated commit timeline
 ───────────────────────────────────────────── */
-function CommitTimeline() {
+function CommitTimeline({ commits }: { commits: { hash: string; message: string; author: string; time: string }[] }) {
   return (
-    <div
-      className="overflow-y-auto"
-      style={{ maxHeight: '260px' }}
-    >
+    <div className="overflow-y-auto" style={{ maxHeight: '260px' }}>
       <div className="relative">
-        {/* Vertical connecting line */}
-        <div
-          className="absolute left-[7px] top-2 bottom-2 w-px bg-[#E5E5E7]"
-          aria-hidden="true"
-        />
-
+        <div className="absolute left-[7px] top-2 bottom-2 w-px bg-[#E5E5E7]" aria-hidden="true" />
         <ul className="space-y-0">
-          {COMMITS.map((commit, i) => (
+          {commits.map((commit, i) => (
             <motion.li
-              key={commit.hash}
+              key={commit.hash + i}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
               className="relative flex gap-4 pb-5 last:pb-0"
             >
-              {/* Node dot */}
               <div className="relative z-10 mt-1 shrink-0 w-3.5 h-3.5 rounded-full bg-white border-2 border-[#2563EB]" />
-
-              {/* Commit detail */}
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-2 flex-wrap">
                   <span className="font-mono text-[10px] text-[#2563EB] bg-[#2563EB]/8 px-1.5 py-0.5 rounded select-all">
@@ -68,8 +46,7 @@ function CommitTimeline() {
 }
 
 /* ─────────────────────────────────────────────
-   Existing Robot Mascot Walker Component
-   Reuses /mascot-robot.png asset from codebase
+   Robot Mascot Walker (unchanged)
 ───────────────────────────────────────────── */
 function ExistingRobotMascotWalker() {
   return (
@@ -81,13 +58,8 @@ function ExistingRobotMascotWalker() {
         y: [35, 5, -5, 50, -5, 25, -5, 50, -5, 5, 35],
         rotate: [-6, -12, -4, 6, -8, 5, -8, 6, -4, -12, -6],
       }}
-      transition={{
-        duration: 22,
-        repeat: Infinity,
-        ease: 'easeInOut',
-      }}
+      transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
     >
-      {/* Mascot Image asset aligned directly on track line without bouncing */}
       <div className="w-16 h-20 relative flex items-center justify-center -mb-2">
         <img
           src="/mascot-robot.png"
@@ -95,8 +67,6 @@ function ExistingRobotMascotWalker() {
           className="w-full h-full object-contain filter drop-shadow-[0_4px_12px_rgba(37,99,235,0.3)]"
         />
       </div>
-
-      {/* Downward Trace Scanner Beam */}
       <motion.div
         className="w-12 h-14 bg-gradient-to-b from-[#2563EB]/40 via-[#2563EB]/15 to-transparent"
         style={{ clipPath: 'polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%)' }}
@@ -108,26 +78,15 @@ function ExistingRobotMascotWalker() {
 }
 
 /* ─────────────────────────────────────────────
-   Trace Route & Walking Robot Background (Trace Page Only)
+   Trace Background (unchanged)
 ───────────────────────────────────────────── */
 function TraceBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 min-h-full w-full">
-      {/* 2. Glowing Circuit Route Lines */}
       <svg className="absolute inset-0 w-full h-full stroke-[#2563EB]/35" fill="none">
-        <path
-          d="M 0 150 Q 350 70 700 170 T 1400 110 T 2000 180"
-          strokeWidth="3"
-          strokeDasharray="8 8"
-        />
-        <path
-          d="M 0 670 Q 450 790 900 650 T 1600 730 T 2200 630"
-          strokeWidth="3"
-          strokeDasharray="8 8"
-        />
+        <path d="M 0 150 Q 350 70 700 170 T 1400 110 T 2000 180" strokeWidth="3" strokeDasharray="8 8" />
+        <path d="M 0 670 Q 450 790 900 650 T 1600 730 T 2200 630" strokeWidth="3" strokeDasharray="8 8" />
       </svg>
-
-      {/* 3. Animated Execution Stream Pulses */}
       <motion.div
         className="absolute w-48 h-1.5 bg-gradient-to-r from-transparent via-[#2563EB] to-transparent filter drop-shadow-[0_0_12px_#2563EB]"
         style={{ top: '150px' }}
@@ -140,8 +99,6 @@ function TraceBackground() {
         animate={{ x: ['110vw', '-20vw'] }}
         transition={{ duration: 7.5, repeat: Infinity, ease: 'linear' }}
       />
-
-      {/* 4. Execution Stack Waypoint Cards (In Margins Around Main Card) */}
       {[
         { label: 'API GATEWAY', sub: 'POST /v1/auth', top: '18%', left: '4%', icon: Code2, color: '#2563EB' },
         { label: 'JWT VERIFIER', sub: 'Token Verified', top: '44%', left: '3%', icon: ShieldCheck, color: '#059669' },
@@ -156,35 +113,55 @@ function TraceBackground() {
           animate={{ y: [0, -6, 0] }}
           transition={{ duration: 3.8, repeat: Infinity, delay: i * 0.7, ease: 'easeInOut' }}
         >
-          <div
-            className="p-1.5 rounded-lg shadow-sm"
-            style={{ backgroundColor: `${station.color}18`, color: station.color }}
-          >
+          <div className="p-1.5 rounded-lg shadow-sm" style={{ backgroundColor: `${station.color}18`, color: station.color }}>
             <station.icon className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-[10px] font-mono font-bold tracking-wider" style={{ color: station.color }}>
-              {station.label}
-            </div>
+            <div className="text-[10px] font-mono font-bold tracking-wider" style={{ color: station.color }}>{station.label}</div>
             <div className="text-[9px] font-mono text-[#64748B]">{station.sub}</div>
           </div>
         </motion.div>
       ))}
-
-      {/* 5. Existing Robot Mascot Asset Walking Along Curved Path */}
       <ExistingRobotMascotWalker />
     </div>
   );
 }
 
+/* ─────────────────────────────────────────────
+   Main page
+───────────────────────────────────────────── */
 export default function TraceAgentPage() {
+  const [commits, setCommits] = useState<{ hash: string; message: string; author: string; time: string }[]>([]);
+  const [summary, setSummary] = useState('');
+  const [contributors, setContributors] = useState<ContributorEntry[]>([]);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('repoatlas_result');
+      if (!raw) return;
+      const result = JSON.parse(raw);
+      const trace: TraceResult | null = result.trace ?? null;
+      if (!trace) return;
+
+      setSummary(trace.summary ?? '');
+      setContributors(trace.contributors ?? []);
+
+      // Map CommitEntry → display format
+      const mapped = (trace.commits ?? []).slice(0, 20).map((c: CommitEntry) => ({
+        hash: c.short_hash ?? c.hash?.slice(0, 7) ?? '?',
+        message: c.message ?? '',
+        author: c.author ?? '',
+        time: c.date ? new Date(c.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }) : '',
+      }));
+      setCommits(mapped);
+    } catch { /* no session */ }
+  }, []);
+
   return (
     <main className="min-h-screen bg-[#FAFAFA] text-[#111114] selection:bg-[#2563EB]/20 selection:text-[#2563EB] overflow-x-hidden flex flex-col relative">
       <Navbar />
-
-      {/* Ambient Trace Route & Robot Background */}
       <TraceBackground />
-      
+
       <div className="flex-1 flex items-center justify-center pt-32 pb-24 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto w-full relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -201,24 +178,44 @@ export default function TraceAgentPage() {
               <Search className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-xs font-mono text-[#2563EB] uppercase tracking-wider">
-                Pipeline Stage 04
-              </span>
+              <span className="text-xs font-mono text-[#2563EB] uppercase tracking-wider">Pipeline Stage 04</span>
               <h3 className="text-2xl font-bold text-[#111114]">Trace Agent</h3>
-
             </div>
           </div>
 
           <div className="space-y-3 font-sans">
+            {/* AI summary */}
+            {summary && (
+              <div className="p-4 rounded-xl bg-[#F0F6FF] border border-[#2563EB]/20 text-sm text-[#374151] leading-relaxed">
+                {summary}
+              </div>
+            )}
 
-            {/* ── Commit Timeline (replaces Execution Trace box) ── */}
+            {/* Commit Timeline */}
             <div className="p-4 rounded-xl bg-[#FAFAFA] border border-[#E5E5E7]">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[#2563EB] font-bold font-mono text-xs">Commit History</span>
                 <span className="text-[10px] font-mono text-[#9CA3AF]">most recent first</span>
               </div>
-              <CommitTimeline />
+              {commits.length > 0 ? (
+                <CommitTimeline commits={commits} />
+              ) : (
+                <p className="text-xs font-mono text-[#9CA3AF] py-4 text-center">
+                  No commit data — analyze a repo from the home page first.
+                </p>
+              )}
             </div>
+
+            {/* Contributors */}
+            {contributors.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {contributors.slice(0, 8).map((c, i) => (
+                  <span key={i} className="px-2.5 py-1 rounded-full bg-[#FAFAFA] border border-[#E5E5E7] text-[10px] font-mono text-[#6B7280]">
+                    {c.author} · {c.count} commits
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t border-[#E5E5E7] text-xs font-mono text-[#9CA3AF]">
@@ -232,4 +229,3 @@ export default function TraceAgentPage() {
     </main>
   );
 }
-
