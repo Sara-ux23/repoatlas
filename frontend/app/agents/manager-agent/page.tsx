@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, XCircle, Loader2, Bot, Compass, Search, Brain, Palette, ExternalLink } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, Bot, Compass, Search, Brain, Palette, ExternalLink, RefreshCw } from 'lucide-react';
 import { Navbar } from '../../../components/Navbar';
 import { Footer } from '../../../components/Footer';
 import type { ManagerResponse } from '../../../lib/api';
+import { clearSession, clearLocalSession } from '../../../lib/api';
 
 // Declare custom element for TypeScript
 declare global {
@@ -32,6 +33,12 @@ const AGENT_META: Record<string, { label: string; icon: React.ElementType; href:
 export default function ManagerAgentPage() {
   const [result, setResult] = useState<ManagerResponse | null>(null);
   const [repoUrl, setRepoUrl] = useState<string>('');
+
+  const handleNewRepo = async () => {
+    clearLocalSession();
+    try { await clearSession(); } catch { /* backend may be offline */ }
+    window.location.href = '/';
+  };
 
   useEffect(() => {
     // Load official Spline WebGL viewer script
@@ -147,6 +154,13 @@ export default function ManagerAgentPage() {
                       </span>
                     );
                   })}
+                  <button
+                    onClick={handleNewRepo}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold border border-[#2563EB]/30 bg-[#2563EB]/5 text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition-colors"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    New Repo
+                  </button>
                 </div>
               </div>
 
@@ -278,12 +292,13 @@ export default function ManagerAgentPage() {
 
               {/* Navigate back */}
               <div className="flex justify-center pt-2 pb-4">
-                <a
-                  href="/"
-                  className="px-6 py-2.5 rounded-full text-sm font-semibold text-white bg-[#2563EB] hover:bg-[#1D4ED8] transition-colors"
+                <button
+                  onClick={handleNewRepo}
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold text-white bg-[#2563EB] hover:bg-[#1D4ED8] transition-colors"
                 >
+                  <RefreshCw className="w-4 h-4" />
                   Analyze another repo
-                </a>
+                </button>
               </div>
             </motion.div>
           )}
@@ -297,13 +312,13 @@ export default function ManagerAgentPage() {
               className="text-center space-y-3"
             >
               <p className="text-sm font-mono text-[#9CA3AF]">No analysis loaded yet.</p>
-              <a
-                href="/"
+              <button
+                onClick={handleNewRepo}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-[#2563EB] hover:bg-[#1D4ED8] transition-colors"
               >
                 <Loader2 className="w-4 h-4" />
                 Analyze a repo first
-              </a>
+              </button>
             </motion.div>
           )}
         </motion.section>

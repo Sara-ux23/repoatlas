@@ -127,3 +127,9 @@ export async function getSession(): Promise<{ repo_url: string | null; local_pat
 export async function clearSession(): Promise<void> {
   await fetch(`${BASE_URL}/manager/session`, { method: 'DELETE' });
 }
+
+/** Wipe frontend sessionStorage for a clean slate before a new analysis. */
+export function clearLocalSession(): void {
+  sessionStorage.removeItem('repoatlas_result');
+  sessionStorage.removeItem('repoatlas_url');
+}
