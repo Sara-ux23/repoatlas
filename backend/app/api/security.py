@@ -7,12 +7,13 @@ from pydantic import BaseModel
 from typing import Optional
 
 from app.agents.security_agent import run_security
+from app.core.repo_session import repo_session
 
 router = APIRouter(prefix="/security", tags=["Security Agent"])
 
 
 class SecurityRequest(BaseModel):
-    repo_path: str
+    repo_path: Optional[str] = None  # Optional - uses backend session if not provided
     query: str = "full security audit"
 
 
@@ -29,11 +30,21 @@ async def security_scan(request: SecurityRequest):
     """
     Run a full security audit on a repository.
 
-    - repo_path: local path or GitHub URL
+    - repo_path: optional path/URL (uses backend session if omitted)
     - query: focus area (default: 'full security audit')
     """
     try:
-        result = await run_security(request.repo_path, request.query)
+        # Use session repo if no path provided
+        if request.repo_path:
+            repo_path = request.repo_path
+        elif repo_session.local_path:
+            repo_path = repo_session.local_path
+        else:
+            raise HTTPException(status_code=400, detail="No repository loaded. Please analyze a repo first on the Product page.")
+        
+        result = await run_security(repo_path, request.query)
         return SecurityResponse(**result)
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
