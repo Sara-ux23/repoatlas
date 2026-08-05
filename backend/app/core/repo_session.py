@@ -53,7 +53,9 @@ class RepoSession:
                 return self.local_path
 
             if self.local_path and Path(self.local_path).exists():
-                shutil.rmtree(self.local_path, ignore_errors=True)
+                # Only delete if it was a cloned temp repository (URL-based)
+                if self.repo_url and (self.repo_url.startswith("http://") or self.repo_url.startswith("https://")):
+                    shutil.rmtree(self.local_path, ignore_errors=True)
 
             if repo_url.startswith("http://") or repo_url.startswith("https://"):
                 # Lazy import to avoid module-level hang
@@ -70,7 +72,9 @@ class RepoSession:
 
     def clear(self):
         if self.local_path and Path(self.local_path).exists():
-            shutil.rmtree(self.local_path, ignore_errors=True)
+            # Only delete if it was a cloned temp repository (URL-based)
+            if self.repo_url and (self.repo_url.startswith("http://") or self.repo_url.startswith("https://")):
+                shutil.rmtree(self.local_path, ignore_errors=True)
         self.repo_url = None
         self.local_path = None
         SESSION_FILE.unlink(missing_ok=True)
