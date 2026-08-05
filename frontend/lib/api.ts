@@ -133,3 +133,38 @@ export function clearLocalSession(): void {
   sessionStorage.removeItem('repoatlas_result');
   sessionStorage.removeItem('repoatlas_url');
 }
+
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface UserQueryResponse {
+  answer: string;
+  context_used: boolean;
+  repo_path?: string;
+  error?: string;
+}
+
+export async function askUserQuery(
+  query: string,
+  chatHistory?: ChatMessage[],
+  repoPath?: string
+): Promise<UserQueryResponse> {
+  const res = await fetch(`${BASE_URL}/user-query/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query,
+      chat_history: chatHistory ?? null,
+      repo_path: repoPath ?? null,
+    }),
+  });
+
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Query failed (${res.status}): ${detail}`);
+  }
+
+  return res.json() as Promise<UserQueryResponse>;
+}

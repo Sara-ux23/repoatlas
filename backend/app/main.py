@@ -12,6 +12,7 @@ from app.api.trace import router as trace_router
 from app.api.security import router as security_router
 from app.api.visualization import router as viz_router
 from app.api.manager import router as manager_router
+from app.api.user_query import router as user_query_router
 
 app = FastAPI(title="RepoAtlas AI", version="0.1.0")
 
@@ -33,6 +34,7 @@ app.include_router(trace_router)
 app.include_router(security_router)
 app.include_router(viz_router)
 app.include_router(manager_router)
+app.include_router(user_query_router)
 
 
 @app.get("/health")
