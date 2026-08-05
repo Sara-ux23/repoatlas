@@ -1,5 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import './index.css'
 import Home from '../app/page'
 import DocsPage from '../app/docs/page'
 import UserQueryPage from '../app/agents/user-query/page'
