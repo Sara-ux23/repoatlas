@@ -133,9 +133,22 @@ export default function ExplorerAgentPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    // Load repo URL and any prior explorer result from session
-    const url = sessionStorage.getItem('repoatlas_url') ?? '';
-    setRepoUrl(url);
+    // Check backend session first
+    fetch(`${BASE_URL}/manager/session`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.repo_url && data.cached) {
+          setRepoUrl(data.repo_url);
+          sessionStorage.setItem('repoatlas_url', data.repo_url);
+        } else {
+          const url = sessionStorage.getItem('repoatlas_url') ?? '';
+          setRepoUrl(url);
+        }
+      })
+      .catch(() => {
+        const url = sessionStorage.getItem('repoatlas_url') ?? '';
+        setRepoUrl(url);
+      });
 
     try {
       const raw = sessionStorage.getItem('repoatlas_result');
@@ -164,9 +177,9 @@ export default function ExplorerAgentPage() {
       {
         id: 'welcome',
         role: 'assistant',
-        text: url
-          ? `Repo loaded: \`${url}\`\n\nAsk me anything about its structure, entry points, dependencies, or architecture.`
-          : 'No repo analyzed yet. Go back to the home page and paste a GitHub URL first.',
+        text: repoUrl
+          ? `Repo loaded: \`${repoUrl}\`\n\nAsk me anything about its structure, entry points, dependencies, or architecture.`
+          : 'No repo analyzed yet. Go to **Product** page and analyze a repository first, then come back here.',
         ts: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
       },
     ]);
@@ -197,7 +210,7 @@ export default function ExplorerAgentPage() {
       const res = await fetch(`${BASE_URL}/explorer/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repo_path: repoUrl || 'unknown', query: trimmed }),
+        body: JSON.stringify({ query: trimmed }),  // Let backend use session
       });
       const data = await res.json();
       const text = res.ok
