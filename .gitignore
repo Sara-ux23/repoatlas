@@ -39,3 +39,6 @@ static/videos/
 # Testing
 coverage/
 .coverage
+
+# Session persistence
+.repoatlas_session.json
