@@ -133,6 +133,8 @@ export default function ExplorerAgentPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
+    let didSetInitialMessage = false;
+    
     // Check backend session first
     fetch(`${BASE_URL}/manager/session`)
       .then((res) => res.json())
@@ -140,16 +142,65 @@ export default function ExplorerAgentPage() {
         if (data.repo_url && data.cached) {
           setRepoUrl(data.repo_url);
           localStorage.setItem('repoatlas_url', data.repo_url);
+          
+          // Show welcome message with repo URL
+          const now = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+          setMessages([{
+            id: 'welcome',
+            role: 'assistant',
+            text: `Repo loaded: \`${data.repo_url}\`\n\nAsk me anything about its structure, entry points, dependencies, or architecture.`,
+            ts: now,
+          }]);
+          didSetInitialMessage = true;
         } else {
           const url = localStorage.getItem('repoatlas_url') || sessionStorage.getItem('repoatlas_url') || '';
-          setRepoUrl(url);
+          if (url) {
+            setRepoUrl(url);
+            const now = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            setMessages([{
+              id: 'welcome',
+              role: 'assistant',
+              text: `Repo loaded: \`${url}\`\n\nAsk me anything about its structure, entry points, dependencies, or architecture.`,
+              ts: now,
+            }]);
+            didSetInitialMessage = true;
+          }
+        }
+        
+        // If no repo found, show error message
+        if (!didSetInitialMessage) {
+          const now = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+          setMessages([{
+            id: 'welcome',
+            role: 'assistant',
+            text: 'No repo analyzed yet. Go to **Product** page and analyze a repository first, then come back here.',
+            ts: now,
+          }]);
         }
       })
       .catch(() => {
         const url = localStorage.getItem('repoatlas_url') || sessionStorage.getItem('repoatlas_url') || '';
         setRepoUrl(url);
+        
+        const now = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        if (url) {
+          setMessages([{
+            id: 'welcome',
+            role: 'assistant',
+            text: `Repo loaded: \`${url}\`\n\nAsk me anything about its structure, entry points, dependencies, or architecture.`,
+            ts: now,
+          }]);
+        } else {
+          setMessages([{
+            id: 'welcome',
+            role: 'assistant',
+            text: 'No repo analyzed yet. Go to **Product** page and analyze a repository first, then come back here.',
+            ts: now,
+          }]);
+        }
       });
 
+    // Check for prior explorer result from storage
     try {
       const raw = localStorage.getItem('repoatlas_result') || sessionStorage.getItem('repoatlas_result');
       if (raw) {
@@ -167,22 +218,9 @@ export default function ExplorerAgentPage() {
             { id: 'seed-u', role: 'user', text: 'What folder structure and entry points does this repo have?', ts: now() },
             { id: 'seed-a', role: 'assistant', text: explorerText, ts: now() },
           ]);
-          return;
         }
       }
     } catch { /* no session data */ }
-
-    // No session data — show welcome prompt
-    setMessages([
-      {
-        id: 'welcome',
-        role: 'assistant',
-        text: repoUrl
-          ? `Repo loaded: \`${repoUrl}\`\n\nAsk me anything about its structure, entry points, dependencies, or architecture.`
-          : 'No repo analyzed yet. Go to **Product** page and analyze a repository first, then come back here.',
-        ts: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-      },
-    ]);
   }, []);
 
   useEffect(() => {
