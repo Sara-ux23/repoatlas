@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 def _load_keys() -> list[str]:
     """Return all keys from environment variables."""
     seen, keys = set(), []
-    for name in ["GROQ_API_KEY", "GROQ_API_KEY_2", "GROQ_API_KEY_3", "GROQ_API_KEY_4"]:
+    for name in ["GROQ_API_KEY", "GROQ_API_KEY_2", "GROQ_API_KEY_3", "GROQ_API_KEY_4", "GROQ_API_KEY_5", "GROQ_API_KEY_6"]:
         k = os.getenv(name, "").strip()
         if k and k not in seen:
             keys.append(k)
