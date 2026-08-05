@@ -139,19 +139,19 @@ export default function ExplorerAgentPage() {
       .then((data) => {
         if (data.repo_url && data.cached) {
           setRepoUrl(data.repo_url);
-          sessionStorage.setItem('repoatlas_url', data.repo_url);
+          localStorage.setItem('repoatlas_url', data.repo_url);
         } else {
-          const url = sessionStorage.getItem('repoatlas_url') ?? '';
+          const url = localStorage.getItem('repoatlas_url') || sessionStorage.getItem('repoatlas_url') || '';
           setRepoUrl(url);
         }
       })
       .catch(() => {
-        const url = sessionStorage.getItem('repoatlas_url') ?? '';
+        const url = localStorage.getItem('repoatlas_url') || sessionStorage.getItem('repoatlas_url') || '';
         setRepoUrl(url);
       });
 
     try {
-      const raw = sessionStorage.getItem('repoatlas_result');
+      const raw = localStorage.getItem('repoatlas_result') || sessionStorage.getItem('repoatlas_result');
       if (raw) {
         const result = JSON.parse(raw);
         const explorerText: string | null =

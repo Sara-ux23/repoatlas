@@ -128,10 +128,12 @@ export async function clearSession(): Promise<void> {
   await fetch(`${BASE_URL}/manager/session`, { method: 'DELETE' });
 }
 
-/** Wipe frontend sessionStorage for a clean slate before a new analysis. */
+/** Wipe frontend sessionStorage and localStorage for a clean slate before a new analysis. */
 export function clearLocalSession(): void {
   sessionStorage.removeItem('repoatlas_result');
   sessionStorage.removeItem('repoatlas_url');
+  localStorage.removeItem('repoatlas_result');
+  localStorage.removeItem('repoatlas_url');
 }
 
 export interface ChatMessage {
