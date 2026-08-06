@@ -6,6 +6,7 @@ import { Sparkles, Send, Loader2, User, Bot } from 'lucide-react';
 import { Navbar } from '../../../components/Navbar';
 import { Footer } from '../../../components/Footer';
 import { askUserQuery } from '../../../lib/api';
+import { useRepo } from '../../../lib/repoContext';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -14,6 +15,7 @@ interface Message {
 }
 
 export default function UserQueryPage() {
+  const { repoPath } = useRepo();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -56,7 +58,7 @@ export default function UserQueryPage() {
         content: msg.content,
       }));
 
-      const response = await askUserQuery(userMessage.content, chatHistory);
+      const response = await askUserQuery(userMessage.content, chatHistory, repoPath ?? undefined);
       
       const assistantMessage: Message = {
         role: 'assistant',

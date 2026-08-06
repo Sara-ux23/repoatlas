@@ -6,6 +6,7 @@ import { Search, Sparkles, Activity, Code2, Database, ShieldCheck } from 'lucide
 import { Navbar } from '../../../components/Navbar';
 import { Footer } from '../../../components/Footer';
 import type { CommitEntry, ContributorEntry, TraceResult } from '../../../lib/api';
+import { useRepo } from '../../../lib/repoContext';
 
 /* ─────────────────────────────────────────────
    Animated commit timeline
@@ -131,15 +132,20 @@ function TraceBackground() {
    Main page
 ───────────────────────────────────────────── */
 export default function TraceAgentPage() {
+  const { analysisResult } = useRepo();
   const [commits, setCommits] = useState<{ hash: string; message: string; author: string; time: string }[]>([]);
   const [summary, setSummary] = useState('');
   const [contributors, setContributors] = useState<ContributorEntry[]>([]);
 
   useEffect(() => {
     try {
-      const raw = sessionStorage.getItem('repoatlas_result');
-      if (!raw) return;
-      const result = JSON.parse(raw);
+      // Use context first, fallback to localStorage then sessionStorage
+      const result = analysisResult || (() => {
+        const raw = localStorage.getItem('repoatlas_result') || sessionStorage.getItem('repoatlas_result');
+        return raw ? JSON.parse(raw) : null;
+      })();
+      
+      if (!result) return;
       const trace: TraceResult | null = result.trace ?? null;
       if (!trace) return;
 
@@ -155,7 +161,7 @@ export default function TraceAgentPage() {
       }));
       setCommits(mapped);
     } catch { /* no session */ }
-  }, []);
+  }, [analysisResult]);
 
   return (
     <main className="min-h-screen bg-[#FAFAFA] text-[#111114] selection:bg-[#2563EB]/20 selection:text-[#2563EB] overflow-x-hidden flex flex-col relative">

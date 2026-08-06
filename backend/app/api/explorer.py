@@ -2,12 +2,13 @@
 FastAPI router for the Explorer Agent.
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 
 from app.agents.explorer_agent import run_explorer
 from app.core.repo_session import repo_session
+from app.auth.dependencies import get_current_user
 
 router = APIRouter(prefix="/explorer", tags=["Explorer Agent"])
 
@@ -22,7 +23,10 @@ class ExploreResponse(BaseModel):
 
 
 @router.post("/", response_model=ExploreResponse)
-async def explore_repo(request: ExploreRequest):
+async def explore_repo(
+    request: ExploreRequest,
+    user_id: str = Depends(get_current_user),
+):
     """
     Trigger the Explorer Agent on a repository.
 
@@ -36,8 +40,11 @@ async def explore_repo(request: ExploreRequest):
         elif repo_session.local_path:
             repo_path = repo_session.local_path
         else:
-            raise HTTPException(status_code=400, detail="No repository loaded. Please analyze a repo first on the Product page.")
-        
+            raise HTTPException(
+                status_code=400,
+                detail="No repository loaded. Please analyze a repo first on the Product page.",
+            )
+
         result = await run_explorer(repo_path, request.query)
         return ExploreResponse(result=result)
     except HTTPException:

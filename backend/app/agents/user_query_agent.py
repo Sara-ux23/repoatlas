@@ -13,7 +13,7 @@ os.environ["SSL_CERT_FILE"] = certifi.where()
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from app.core.llm import invoke_with_rotation
 from app.core.repo_session import repo_session
-from app.tools.repo_tools import get_repo_tree, search_in_files
+from app.tools.repo_tools import get_repo_tree, search_in_repo
 from app.tools.git_tools import get_commit_log, get_contributor_stats
 
 
@@ -45,7 +45,7 @@ async def _get_repo_context(local_path: str, query: str) -> str:
     try:
         # Always include basic structure
         tree = get_repo_tree.invoke({"repo_path": local_path, "max_depth": 2})
-        context_parts = [f"REPOSITORY STRUCTURE:\n{tree[:1000]}"]
+        context_parts = [f"REPOSITORY STRUCTURE:\n{str(tree)[:1000]}"]
         
         # Add git history if query mentions commits/history
         q_lower = query.lower()
@@ -66,14 +66,14 @@ async def _get_repo_context(local_path: str, query: str) -> str:
         search_terms = [word for word in q_lower.split() if len(word) > 4][:3]
         if search_terms:
             try:
-                search_results = search_in_files.invoke({
+                search_results = search_in_repo.invoke({
                     "repo_path": local_path,
                     "pattern": " ".join(search_terms)
                 })
-                if search_results.get("matches"):
+                if search_results:
                     matches_str = "\n".join([
-                        f"- {m['file']} (line {m['line']}): {m['content'][:80]}"
-                        for m in search_results["matches"][:5]
+                        f"- {m['file']} (line {m['line_number']}): {m['line'][:80]}"
+                        for m in search_results[:5]
                     ])
                     context_parts.append(f"\nRELEVANT CODE:\n{matches_str}")
             except Exception:

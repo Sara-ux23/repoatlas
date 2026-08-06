@@ -7,6 +7,7 @@ import { Navbar } from '../../../components/Navbar';
 import { Footer } from '../../../components/Footer';
 import type { ManagerResponse } from '../../../lib/api';
 import { clearSession, clearLocalSession } from '../../../lib/api';
+import { useRepo } from '../../../lib/repoContext';
 
 // Declare custom element for TypeScript
 declare global {
@@ -31,6 +32,7 @@ const AGENT_META: Record<string, { label: string; icon: React.ElementType; href:
 };
 
 export default function ManagerAgentPage() {
+  const { analysisResult, repoPath } = useRepo();
   const [result, setResult] = useState<ManagerResponse | null>(null);
   const [repoUrl, setRepoUrl] = useState<string>('');
 
@@ -70,18 +72,19 @@ export default function ManagerAgentPage() {
       }
     }, 50);
 
-    // Read real analysis result from sessionStorage
+    // Read real analysis result from sessionStorage or context
     try {
-      const raw = sessionStorage.getItem('repoatlas_result');
-      const url = sessionStorage.getItem('repoatlas_url');
+      const raw = sessionStorage.getItem('repoatlas_result') || localStorage.getItem('repoatlas_result');
+      const url = sessionStorage.getItem('repoatlas_url') || localStorage.getItem('repoatlas_url');
       if (raw) setResult(JSON.parse(raw) as ManagerResponse);
       if (url) setRepoUrl(url);
+      else if (repoPath) setRepoUrl(repoPath);
     } catch {
-      // no result yet — page viewed directly
+      if (repoPath) setRepoUrl(repoPath);
     }
 
     return () => clearInterval(interval);
-  }, []);
+  }, [repoPath]);
 
   return (
     <main className="min-h-screen bg-[#FAFAFA] text-[#111114] selection:bg-[#2563EB]/20 selection:text-[#2563EB] overflow-x-hidden flex flex-col font-sans">

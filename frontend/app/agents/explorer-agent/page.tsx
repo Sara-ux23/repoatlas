@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Compass, Send, Network, User, CornerDownLeft, Loader2 } from 'lucide-react';
 import { Navbar } from '../../../components/Navbar';
 import { Footer } from '../../../components/Footer';
+import { useRepo } from '../../../lib/repoContext';
 
 const BASE_URL = 'http://localhost:8000';
 
@@ -125,6 +126,7 @@ function TypingIndicator() {
    Main page
 ───────────────────────────────────────────── */
 export default function ExplorerAgentPage() {
+  const { repoPath, setRepoPath, analysisResult, setAnalysisResult } = useRepo();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -133,80 +135,77 @@ export default function ExplorerAgentPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    let didSetInitialMessage = false;
-    
-    // Check backend session first
-    fetch(`${BASE_URL}/manager/session`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.repo_url && data.cached) {
-          setRepoUrl(data.repo_url);
-          localStorage.setItem('repoatlas_url', data.repo_url);
-          
-          // Show welcome message with repo URL
-          const now = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-          setMessages([{
-            id: 'welcome',
-            role: 'assistant',
-            text: `Repo loaded: \`${data.repo_url}\`\n\nAsk me anything about its structure, entry points, dependencies, or architecture.`,
-            ts: now,
-          }]);
-          didSetInitialMessage = true;
-        } else {
+    const init = async () => {
+      let currentUrl = repoPath || '';
+      let didSetInitialMessage = false;
+
+      if (currentUrl) {
+        setRepoUrl(currentUrl);
+        didSetInitialMessage = true;
+      } else {
+        try {
+          const res = await fetch(`${BASE_URL}/manager/session`);
+          const data = await res.json();
+          if (data.repo_url) {
+            currentUrl = data.repo_url;
+            setRepoUrl(currentUrl);
+            setRepoPath(currentUrl);
+            didSetInitialMessage = true;
+          }
+        } catch {
           const url = localStorage.getItem('repoatlas_url') || sessionStorage.getItem('repoatlas_url') || '';
           if (url) {
+            currentUrl = url;
             setRepoUrl(url);
-            const now = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-            setMessages([{
-              id: 'welcome',
-              role: 'assistant',
-              text: `Repo loaded: \`${url}\`\n\nAsk me anything about its structure, entry points, dependencies, or architecture.`,
-              ts: now,
-            }]);
+            setRepoPath(url);
             didSetInitialMessage = true;
           }
         }
-        
-        // If no repo found, show error message
-        if (!didSetInitialMessage) {
-          const now = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-          setMessages([{
-            id: 'welcome',
-            role: 'assistant',
-            text: 'No repo analyzed yet. Go to **Product** page and analyze a repository first, then come back here.',
-            ts: now,
-          }]);
-        }
-      })
-      .catch(() => {
-        const url = localStorage.getItem('repoatlas_url') || sessionStorage.getItem('repoatlas_url') || '';
-        setRepoUrl(url);
-        
-        const now = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-        if (url) {
-          setMessages([{
-            id: 'welcome',
-            role: 'assistant',
-            text: `Repo loaded: \`${url}\`\n\nAsk me anything about its structure, entry points, dependencies, or architecture.`,
-            ts: now,
-          }]);
-        } else {
-          setMessages([{
-            id: 'welcome',
-            role: 'assistant',
-            text: 'No repo analyzed yet. Go to **Product** page and analyze a repository first, then come back here.',
-            ts: now,
-          }]);
-        }
-      });
+      }
 
-    // Check for prior explorer result from storage
+      const now = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      if (didSetInitialMessage && currentUrl) {
+        setMessages([
+          {
+            id: 'welcome',
+            role: 'assistant',
+            text: `Repo loaded: \`${currentUrl}\`\n\nAsk me anything about its structure, entry points, dependencies, or architecture.`,
+            ts: now,
+          },
+        ]);
+      } else {
+        setMessages([
+          {
+            id: 'welcome',
+            role: 'assistant',
+            text: 'No repo analyzed yet. Go to **Product** page and analyze a repository first, then come back here.',
+            ts: now,
+          },
+        ]);
+      }
+
+      if (!analysisResult) {
+        try {
+          const raw = localStorage.getItem('repoatlas_result') || sessionStorage.getItem('repoatlas_result');
+          if (raw) {
+            const result = JSON.parse(raw);
+            setAnalysisResult(result);
+          }
+        } catch {
+          // ignore invalid data
+        }
+      }
+    };
+
+    init();
+  }, [repoPath, analysisResult, setRepoPath, setAnalysisResult]);
+
+  useEffect(() => {
     try {
       const raw = localStorage.getItem('repoatlas_result') || sessionStorage.getItem('repoatlas_result');
       if (raw) {
         const result = JSON.parse(raw);
-        const explorerText: string | null =
-          typeof result.explorer === 'string' ? result.explorer : null;
+        const explorerText: string | null = typeof result.explorer === 'string' ? result.explorer : null;
 
         const now = () => {
           const d = new Date();
@@ -220,7 +219,9 @@ export default function ExplorerAgentPage() {
           ]);
         }
       }
-    } catch { /* no session data */ }
+    } catch {
+      // no session data
+    }
   }, []);
 
   useEffect(() => {
@@ -245,10 +246,14 @@ export default function ExplorerAgentPage() {
     setIsTyping(true);
 
     try {
+      const requestBody = {
+        query: trimmed,
+        repo_path: repoPath || repoUrl || null,
+      };
       const res = await fetch(`${BASE_URL}/explorer/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: trimmed }),  // Let backend use session
+        body: JSON.stringify(requestBody),
       });
       const data = await res.json();
       const text = res.ok

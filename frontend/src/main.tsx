@@ -9,6 +9,7 @@ import ExplorerAgentPage from '../app/agents/explorer-agent/page'
 import TraceAgentPage from '../app/agents/trace-agent/page'
 import SecurityAgentPage from '../app/agents/security-agent/page'
 import VisualizationAgentPage from '../app/agents/visualization-agent/page'
+import { RepoProvider } from '../lib/repoContext'
 
 function AppRouter() {
   const pathname = window.location.pathname;
@@ -40,7 +41,9 @@ function AppRouter() {
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <AppRouter />
+    <RepoProvider>
+      <AppRouter />
+    </RepoProvider>
   </React.StrictMode>,
 )
 

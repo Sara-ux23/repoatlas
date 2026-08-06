@@ -3,27 +3,55 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Github, Sparkles, Play, ArrowRight, CheckCircle, Code2, Loader2, X, Terminal } from 'lucide-react';
 import { MascotOrb } from './MascotOrb';
 import { heroVariants } from '../lib/animations';
+import { analyzeRepo } from '../lib/api';
+import { useRepo } from '../lib/repoContext';
 
 interface HeroProps {
   onAnalyze?: (url: string) => void;
 }
 
 export const Hero: React.FC<HeroProps> = ({ onAnalyze }) => {
+  const { setRepoPath, setAnalysisResult } = useRepo();
   const [repoUrl, setRepoUrl] = useState('');
   const [isSimulating, setIsSimulating] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
   const [analyzedSuccess, setAnalyzedSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleAnalyzeSubmit = (e: React.FormEvent) => {
+  const normalizeRepoUrl = (url: string) => {
+    const trimmed = url.trim();
+    if (!trimmed) return trimmed;
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+    const cleaned = trimmed.replace(/^github\.com\//i, '');
+    return `https://github.com/${cleaned}`;
+  };
+
+  const handleAnalyzeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!repoUrl.trim()) return;
 
     setIsSimulating(true);
-    setTimeout(() => {
-      setIsSimulating(false);
+    setErrorMessage(null);
+
+    const normalizedUrl = normalizeRepoUrl(repoUrl);
+
+    try {
+      const result = await analyzeRepo({
+        repo_path: normalizedUrl,
+        query: 'full analysis',
+        agents: ['explorer', 'trace', 'security', 'visualization'],
+        generate_video: false,
+      });
+
+      setRepoPath(normalizedUrl);
+      setAnalysisResult(result);
       setAnalyzedSuccess(true);
-      if (onAnalyze) onAnalyze(repoUrl);
-    }, 2000);
+      if (onAnalyze) onAnalyze(normalizedUrl);
+    } catch (error: any) {
+      setErrorMessage(error?.message ?? 'Repo analysis failed. Please try again.');
+    } finally {
+      setIsSimulating(false);
+    }
   };
 
   const sampleRepos = [

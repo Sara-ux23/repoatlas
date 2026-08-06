@@ -1,4 +1,7 @@
 import React from 'react';
+import { RepoProvider } from '../lib/repoContext';
+import { RepoStatus } from '../components/RepoStatus';
+import { RepoChat } from '../components/RepoChat';
 
 export const metadata = {
   title: 'RepoAtlas AI — See your codebase. Not just search it.',
@@ -18,7 +21,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="bg-white text-[#111114] font-sans antialiased selection:bg-[#2563EB]/20 selection:text-[#2563EB] overflow-x-hidden">
-        {children}
+        <RepoProvider>
+          <RepoStatus />
+          {children}
+        </RepoProvider>
       </body>
     </html>
   );

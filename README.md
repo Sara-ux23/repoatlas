@@ -101,7 +101,7 @@ npm run dev
 
 Open your browser and navigate to:
 ```
-http://localhost:3000
+http://localhost:3001
 ```
 
 The backend API will be running at:

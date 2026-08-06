@@ -1,11 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Network, Sparkles, ArrowRight, Menu, X, Github, ChevronDown, Compass, Search, Brain, Palette, Bot } from 'lucide-react';
+import { Network, Sparkles, ArrowRight, Menu, X, Github, ChevronDown, Compass, Search, Brain, Palette, Bot, FolderGit2, XCircle } from 'lucide-react';
+import { useRepo } from '../lib/repoContext';
+import { clearSession } from '../lib/api';
 
 export const Navbar: React.FC = () => {
+  const { repoPath, clearRepo } = useRepo();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [agentsDropdownOpen, setAgentsDropdownOpen] = useState(false);
+
+  const handleClearRepo = async () => {
+    try {
+      await clearSession();
+      clearRepo();
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Failed to clear repo:', error);
+      clearRepo();
+      window.location.href = '/';
+    }
+  };
+
+  const getRepoDisplayName = (path: string | null) => {
+    if (!path) return null;
+    const parts = path.split('/');
+    return parts[parts.length - 1] || path;
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -57,6 +78,23 @@ export const Navbar: React.FC = () => {
 
         {/* Desktop Nav Links */}
         <nav className="hidden md:flex items-center gap-8">
+          {/* Repository indicator */}
+          {repoPath && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#2563EB]/10 border border-[#2563EB]/20">
+              <FolderGit2 className="w-4 h-4 text-[#2563EB]" />
+              <span className="text-xs font-mono text-[#2563EB] max-w-[150px] truncate" title={repoPath}>
+                {getRepoDisplayName(repoPath)}
+              </span>
+              <button
+                onClick={handleClearRepo}
+                className="ml-1 p-0.5 rounded-full hover:bg-[#2563EB]/20 transition-colors"
+                title="Clear repository"
+              >
+                <XCircle className="w-3.5 h-3.5 text-[#2563EB]" />
+              </button>
+            </div>
+          )}
+          
           {navLinks.map((link) => {
             if (link.isDropdown) {
               return (

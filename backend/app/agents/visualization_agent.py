@@ -23,17 +23,36 @@ def _collect(local_path: str) -> dict:
 
 
 def _summary(viz: dict) -> str:
-    langs = ", ".join(f"{l['language']}({l['lines']})" for l in viz["language_breakdown"][:5])
-    dep = viz["dependency_graph"]
-    hm = viz["commit_heatmap"]
-    authors = list({c["author"] for c in viz["contributor_activity"]})
-    size = viz["folder_tree"].get("size", 0)
+    try:
+        langs = ", ".join(f"{l['language']}({l['lines']})" for l in (viz.get("language_breakdown") or [])[:5]) or "unknown"
+    except Exception:
+        langs = "unknown"
+    try:
+        dep = viz.get("dependency_graph") or {}
+        dep_info = f"Files: {dep.get('node_count', 0)}, Connections: {dep.get('edge_count', 0)}"
+    except Exception:
+        dep_info = "Files: unknown"
+    try:
+        hm = viz.get("commit_heatmap") or []
+        commit_info = f"Commits: {sum(h['count'] for h in hm)} over {len(hm)} days"
+    except Exception:
+        commit_info = "Commits: unknown"
+    try:
+        authors = list({c["author"] for c in (viz.get("contributor_activity") or [])})
+        author_info = ", ".join(authors[:10]) or "none"
+    except Exception:
+        author_info = "unknown"
+    try:
+        size = (viz.get("folder_tree") or {}).get("size", 0)
+        size_info = f"Size: {size / 1024:.1f} KB"
+    except Exception:
+        size_info = "Size: unknown"
     return (
         f"Languages: {langs}\n"
-        f"Files: {dep['node_count']}, Connections: {dep['edge_count']}\n"
-        f"Commits: {sum(h['count'] for h in hm)} over {len(hm)} days\n"
-        f"Contributors: {', '.join(authors)}\n"
-        f"Size: {size/1024:.1f} KB"
+        f"{dep_info}\n"
+        f"{commit_info}\n"
+        f"Contributors: {author_info}\n"
+        f"{size_info}"
     )
 
 

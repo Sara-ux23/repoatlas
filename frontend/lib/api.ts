@@ -130,8 +130,10 @@ export async function clearSession(): Promise<void> {
 
 /** Wipe frontend sessionStorage and localStorage for a clean slate before a new analysis. */
 export function clearLocalSession(): void {
+  sessionStorage.removeItem('repoatlas_path');
   sessionStorage.removeItem('repoatlas_result');
   sessionStorage.removeItem('repoatlas_url');
+  localStorage.removeItem('repoatlas_path');
   localStorage.removeItem('repoatlas_result');
   localStorage.removeItem('repoatlas_url');
 }
@@ -169,4 +171,33 @@ export async function askUserQuery(
   }
 
   return res.json() as Promise<UserQueryResponse>;
+}
+
+// Video recording types and functions
+export interface RecordingRequest {
+  repo_url: string;
+  base_url?: string;
+}
+
+export interface RecordingResponse {
+  status: 'exists' | 'recording' | 'ready' | 'not_found';
+  video_url?: string;
+  repo_id: string;
+  message: string;
+}
+
+export async function recordWalkthrough(request: RecordingRequest): Promise<RecordingResponse> {
+  const response = await fetch(`${BASE_URL}/video/record`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) throw new Error('Recording request failed');
+  return response.json();
+}
+
+export async function getRecordingStatus(repoId: string): Promise<RecordingResponse> {
+  const response = await fetch(`${BASE_URL}/video/status/${repoId}`);
+  if (!response.ok) throw new Error('Status check failed');
+  return response.json();
 }

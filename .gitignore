@@ -35,6 +35,7 @@ yarn-error.log*
 
 # Generated files
 static/videos/
+static/recordings/
 
 # Testing
 coverage/
@@ -42,3 +43,8 @@ coverage/
 
 # Session persistence
 .repoatlas_session.json
+
+# Test scripts
+test_supabase.py
+start_backend.py
+backend/test_supabase.py
