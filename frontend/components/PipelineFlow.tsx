@@ -56,7 +56,7 @@ export const PipelineFlow: React.FC = () => {
     {
       id: 4,
       title: 'Security Agent',
-      agent: 'Code Explainer',
+      agent: 'Vulnerability Scanner',
       icon: Brain,
       desc: 'Synthesizes plain-English architectural explanations and safety rules.',
       detail: 'Explains: "RSA-256 signatures prevent token tampering during cross-origin requests."',

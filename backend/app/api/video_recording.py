@@ -1,12 +1,16 @@
 """
 Isolated API endpoints for the repo walkthrough video-recording pipeline.
-Mounted at /video/* — no overlap with any other route.
+Records a walkthrough of the ACTUAL LOADED REPOSITORY's frontend UI
+using headless Chrome + Playwright.
 """
 
 import logging
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from pathlib import Path
+from typing import Optional, Dict, Any
+
+from fastapi import APIRouter, BackgroundTasks
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
-from typing import Optional
 
 from app.services.video_recorder import video_recorder
 
@@ -14,11 +18,11 @@ router = APIRouter(prefix="/video", tags=["video-recording"])
 logger = logging.getLogger(__name__)
 
 
-# ── Schemas ───────────────────────────────────────────────────────────────────
-
 class RecordRequest(BaseModel):
     repo_url: str
     base_url: Optional[str] = "http://localhost:3001"
+    session_data: Optional[Dict[str, Any]] = None
+    force_refresh: Optional[bool] = False
 
 
 class RecordResponse(BaseModel):
@@ -28,18 +32,37 @@ class RecordResponse(BaseModel):
     message: str
 
 
-# ── Routes ───────────────────────────────────────────────────────────────────
+async def _run_recording(
+    repo_id: str,
+    repo_url: str,
+    base_url: str,
+    session_data: Optional[Dict[str, Any]],
+) -> None:
+    """Background task wrapper — logs errors instead of swallowing them."""
+    try:
+        await video_recorder.record_repo_walkthrough(
+            repo_id,
+            repo_url=repo_url,
+            base_url=base_url,
+            session_data=session_data,
+        )
+        logger.info(f"[video] Recording complete for {repo_id}")
+    except Exception as e:
+        logger.error(f"[video] Recording FAILED for {repo_id}: {e}", exc_info=True)
+
 
 @router.post("/record", response_model=RecordResponse)
 async def trigger_recording(req: RecordRequest, background: BackgroundTasks):
     """
-    Start a recording job for a repo.
-    - Returns immediately with status="exists" + video_url if cached.
-    - Returns status="recording" + repo_id if a new job was queued.
+    Start recording a walkthrough of the actual repo UI.
+    Returns cached video immediately if already recorded and force_refresh is False.
     """
     repo_id = video_recorder.get_repo_id(req.repo_url)
 
-    if video_recorder.video_exists(repo_id):
+    if req.force_refresh:
+        video_recorder.clear_recording(repo_id)
+
+    if video_recorder.video_exists(repo_id) and not req.force_refresh:
         logger.info(f"[video] Cache hit for {repo_id}")
         return RecordResponse(
             status="exists",
@@ -48,12 +71,9 @@ async def trigger_recording(req: RecordRequest, background: BackgroundTasks):
             message="Cached recording found.",
         )
 
-    logger.info(f"[video] Queuing recording for {repo_id}")
-    background.add_task(
-        video_recorder.record_repo_walkthrough,
-        repo_id,
-        req.base_url,
-    )
+    base_url = req.base_url or "http://localhost:3001"
+    logger.info(f"[video] Starting UI recording for {repo_id} ({req.repo_url})")
+    background.add_task(_run_recording, repo_id, req.repo_url, base_url, req.session_data)
     return RecordResponse(
         status="recording",
         repo_id=repo_id,
@@ -78,11 +98,29 @@ async def check_status(repo_id: str):
     )
 
 
+@router.get("/stream/{repo_id}")
+async def stream_video(repo_id: str):
+    """
+    Stream the generated .webm video file directly to the browser.
+    """
+    video_path = video_recorder.get_video_file_path(repo_id)
+    if not video_path or not video_path.exists():
+        video_recorder.clear_recording(repo_id)
+        return Response(status_code=404, media_type="video/webm")
+
+    return FileResponse(
+        path=str(video_path),
+        media_type="video/webm",
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        },
+    )
+
+
 @router.delete("/recording/{repo_id}")
 async def delete_recording(repo_id: str):
-    """Invalidate a cached recording so it gets re-generated on next request."""
-    path = video_recorder._video_path(repo_id)
-    if path.exists():
-        path.unlink()
-        return {"status": "deleted", "repo_id": repo_id}
-    return {"status": "not_found", "repo_id": repo_id}
+    """Invalidate a cached recording so it gets re-generated."""
+    video_recorder.clear_recording(repo_id)
+    return {"status": "deleted", "repo_id": repo_id}

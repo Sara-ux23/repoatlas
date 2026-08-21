@@ -23,6 +23,7 @@ def _run_clone(url: str, dest: str, ssl_verify: bool = False):
         text=True,
         env=env,
         shell=True,  # needed on Windows to resolve git from PATH correctly
+        timeout=45,  # guarantee fast clone within 45s
     )
     if result.returncode != 0:
         raise subprocess.CalledProcessError(

@@ -62,7 +62,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # Configure environment variables
-cp .env.example .env
+cp .env.example .env          
 # Edit .env and add your GROQ_API_KEY
 ```
 
@@ -88,7 +88,9 @@ You need two terminal windows:
 ```bash
 cd backend
 # Make sure venv is activated
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8000 
+
+
 ```
 
 **Terminal 2 - Frontend:**

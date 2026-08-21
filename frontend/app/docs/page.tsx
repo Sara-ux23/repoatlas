@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Navbar } from '../../components/Navbar';
 import { Footer } from '../../components/Footer';
+import { useAuth } from '../../lib/authContext';
 
 /* ─────────────────────────────────────────────
    Sidebar Nav Structure
@@ -851,6 +852,7 @@ function Sidebar({
    Main Docs Page Component
 ───────────────────────────────────────────── */
 export default function DocsPage() {
+  const { user } = useAuth();
   const [activeId, setActiveId] = useState('uiux-overview');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -862,7 +864,7 @@ export default function DocsPage() {
 
   return (
     <main className="min-h-screen bg-[#FAFAFA] text-[#111114] selection:bg-[#2563EB]/20 selection:text-[#2563EB] flex flex-col font-sans">
-      <Navbar />
+      <Navbar hideAgents={!user} hideAuthButtons />
 
       <div className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-28 pb-24">
 

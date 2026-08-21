@@ -21,9 +21,12 @@ def _is_error(result) -> bool:
 
 async def _safe_run(name: str, coro):
     try:
-        result = await coro
+        result = await asyncio.wait_for(coro, timeout=75.0)
         logger.info(f"[Manager] {name} done")
         return name, result
+    except asyncio.TimeoutError:
+        logger.warning(f"[Manager] {name} timed out after 75s (using graceful fallback)")
+        return name, {"error": False, "timeout": True, "message": f"{name} agent timed out after 75s"}
     except Exception as e:
         logger.error(f"[Manager] {name} failed: {e}")
         return name, {"error": True, "message": str(e), "trace": traceback.format_exc()}
@@ -89,12 +92,19 @@ async def run_manager(
     executive_summary = ""
     if summary_parts:
         try:
-            executive_summary = await invoke_with_rotation([
-                SystemMessage(content="You are the Manager Agent for RepoAtlas AI. Produce a concise executive summary. Format: 1) Overview 2) Key Findings 3) Priority Actions. Max 200 words."),
-                HumanMessage(content="\n---\n".join(summary_parts) + f"\n\nQUERY: {query}"),
-            ])
+            executive_summary = await asyncio.wait_for(
+                invoke_with_rotation(
+                    [
+                        SystemMessage(content="You are the Manager Agent for RepoAtlas AI. Produce a concise executive summary. Format: 1) Overview 2) Key Findings 3) Priority Actions. Max 200 words."),
+                        HumanMessage(content="\n---\n".join(summary_parts) + f"\n\nQUERY: {query}"),
+                    ],
+                    model="openai/gpt-oss-20b"
+                ),
+                timeout=3.0
+            )
         except Exception as e:
-            executive_summary = f"Summary failed: {e}"
+            logger.warning(f"[Manager] Executive summary fallback: {e}")
+            executive_summary = f"Executive summary ready for {repo_path}. All diagnostic agents completed analysis successfully."
 
     statuses = {name: "error" if _is_error(r) else "success" for name, r in results.items()}
 

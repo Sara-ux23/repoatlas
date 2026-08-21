@@ -1,5 +1,6 @@
 import React from 'react';
-import { Network, Github, Twitter, Disc as Discord, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Github, Twitter, Disc as Discord, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { RepoAtlasLogo } from './RepoAtlasLogo';
 
 export const Footer: React.FC = () => {
   const footerLinks = {
@@ -41,13 +42,8 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-10 pb-12 border-b border-[#E5E5E7]">
           {/* Brand Info & Newsletter */}
           <div className="lg:col-span-2 space-y-4">
-            <a href="#" className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-[#2563EB] p-[1px]">
-                <div className="w-full h-full bg-[#2563EB] rounded-[11px] flex items-center justify-center">
-                  <Network className="w-4 h-4 text-white" />
-                </div>
-              </div>
-              <span className="text-lg font-bold text-[#111114] tracking-tight">RepoAtlas AI</span>
+            <a href="#" className="group">
+              <RepoAtlasLogo showTagline={true} />
             </a>
 
             <p className="text-xs text-[#6B7280] leading-relaxed max-w-sm">

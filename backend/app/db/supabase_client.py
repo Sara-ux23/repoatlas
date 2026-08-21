@@ -29,19 +29,19 @@ def get_supabase():
     key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
 
     if not url or not key:
-        logger.info("[DB] Supabase not configured (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY missing) — DB features disabled")
+        logger.warning("[DB] Supabase not configured (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY missing) — DB features disabled")
         _client = None
         return _client
 
     try:
         from supabase import create_client
         _client = create_client(url, key)
-        logger.info("[DB] Supabase client initialized")
+        logger.info(f"[DB] ✅ Supabase client initialized successfully (URL: {url[:30]}...)")
     except ImportError:
-        logger.warning("[DB] supabase package not installed — DB features disabled")
+        logger.error("[DB] ❌ supabase package not installed — DB features disabled. Run: pip install supabase")
         _client = None
     except Exception as e:
-        logger.error(f"[DB] Failed to create Supabase client: {e}")
+        logger.error(f"[DB] ❌ Failed to create Supabase client: {e}", exc_info=True)
         _client = None
 
     return _client

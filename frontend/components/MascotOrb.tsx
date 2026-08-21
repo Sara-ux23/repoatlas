@@ -105,7 +105,7 @@ export const MascotOrb: React.FC<MascotOrbProps> = ({
   const agentChips = [
     { name: '🧭 Explorer', label: 'Folder & AST Parser', x: '-15%', y: '10%' },
     { name: '🔍 Trace', label: 'Call-Chain Tracker', x: '80%', y: '15%' },
-    { name: '🧠 Security', label: 'Code Explainer', x: '-20%', y: '65%' },
+    { name: '🧠 Security', label: 'Vulnerability Scanner', x: '-20%', y: '65%' },
     { name: '🎨 Visualization', label: 'Diagram Synthesizer', x: '75%', y: '70%' },
     { name: '🤖 Manager', label: 'Swarm Orchestrator', x: '30%', y: '-5%' },
   ];

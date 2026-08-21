@@ -47,20 +47,15 @@ def _report(findings: dict, score: dict) -> str:
     return "\n".join(lines)
 
 
+from app.core.repo_session import repo_session
+
 async def run_security(repo_path: str, query: str = "full security audit") -> dict:
-    cloned = False
-    local_path = repo_path
-    if repo_path.startswith("http"):
-        local_path = await asyncio.get_event_loop().run_in_executor(None, clone_repo, repo_path)
-        cloned = True
-    try:
-        findings = await asyncio.get_event_loop().run_in_executor(None, _scan, local_path)
-        score = _score(findings)
-        report = _report(findings, score)
-        analysis = await invoke_with_rotation([
-            SystemMessage(content="You are a senior cybersecurity expert. Analyze scan results. Format: 1) Executive Summary 2) Critical Issues 3) Top Recommendations (max 5). Max 250 words."),
-            HumanMessage(content=f"{report}\n\nQUERY: {query}"),
-        ])
-        return {"risk_rating": score["rating"], "score": score, "findings": findings, "report": report, "expert_analysis": analysis}
-    finally:
-        if cloned: cleanup_repo(local_path)
+    local_path = await repo_session.load(repo_path)
+    findings = await asyncio.get_event_loop().run_in_executor(None, _scan, local_path)
+    score = _score(findings)
+    report = _report(findings, score)
+    analysis = await invoke_with_rotation([
+        SystemMessage(content="You are a senior cybersecurity expert. Analyze scan results. Format: 1) Executive Summary 2) Critical Issues 3) Top Recommendations (max 5). Max 250 words."),
+        HumanMessage(content=f"{report}\n\nQUERY: {query}"),
+    ], model="openai/gpt-oss-20b")
+    return {"risk_rating": score["rating"], "score": score, "findings": findings, "report": report, "expert_analysis": analysis}

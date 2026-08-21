@@ -15,7 +15,7 @@ export const TechStack: React.FC = () => {
   const duplicatedTechs = [...techs, ...techs, ...techs, ...techs];
 
   return (
-    <section className="py-16 bg-white border-t border-[#E5E5E7] relative overflow-hidden">
+    <section id="tech-stack" className="py-16 bg-white border-t border-[#E5E5E7] relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
         <p className="text-xs font-mono font-semibold uppercase tracking-widest text-[#9CA3AF]">
           Built for real production codebases across language ecosystems

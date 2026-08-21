@@ -12,13 +12,23 @@ from app.tools.git_tools import get_commit_log
 from app.core.llm import invoke_with_rotation
 
 
+import logging
+logger = logging.getLogger(__name__)
+
+def _safe_tool(tool_func, args, fallback):
+    try:
+        return tool_func.invoke(args)
+    except Exception as e:
+        logger.warning(f"[Viz] Tool {getattr(tool_func, 'name', 'tool')} failed: {e}")
+        return fallback
+
 def _collect(local_path: str) -> dict:
     return {
-        "folder_tree": get_folder_size_tree.invoke({"repo_path": local_path}),
-        "language_breakdown": get_language_breakdown.invoke({"repo_path": local_path}),
-        "dependency_graph": get_dependency_graph.invoke({"repo_path": local_path}),
-        "commit_heatmap": get_commit_heatmap.invoke({"repo_path": local_path}),
-        "contributor_activity": get_contributor_activity.invoke({"repo_path": local_path}),
+        "folder_tree": _safe_tool(get_folder_size_tree, {"repo_path": local_path}, {"name": "root", "children": [], "size": 0}),
+        "language_breakdown": _safe_tool(get_language_breakdown, {"repo_path": local_path}, []),
+        "dependency_graph": _safe_tool(get_dependency_graph, {"repo_path": local_path}, {"nodes": [], "edges": [], "node_count": 0, "edge_count": 0}),
+        "commit_heatmap": _safe_tool(get_commit_heatmap, {"repo_path": local_path}, []),
+        "contributor_activity": _safe_tool(get_contributor_activity, {"repo_path": local_path}, []),
     }
 
 
@@ -56,28 +66,23 @@ def _summary(viz: dict) -> str:
     )
 
 
+from app.core.repo_session import repo_session
+
 async def run_visualization(repo_path: str, query: str = "full repo overview", generate_video: bool = False) -> dict:
-    cloned = False
-    local_path = repo_path
+    local_path = await repo_session.load(repo_path)
     repo_name = repo_path.rstrip("/").split("/")[-1]
-    if repo_path.startswith("http"):
-        local_path = await asyncio.get_event_loop().run_in_executor(None, clone_repo, repo_path)
-        cloned = True
-    try:
-        viz = await asyncio.get_event_loop().run_in_executor(None, _collect, local_path)
-        summary_text = _summary(viz)
-        narrative = await invoke_with_rotation([
-            SystemMessage(content="You are the Visualization Agent for RepoAtlas AI. Write a concise data-driven narrative. Max 150 words."),
-            HumanMessage(content=f"{summary_text}\n\nQUERY: {query}"),
-        ])
-        commits = get_commit_log.invoke({"repo_path": local_path, "limit": 10})
-        result = {**viz, "narrative": narrative, "summary": summary_text, "video_url": None}
-        if generate_video:
-            try:
-                from app.tools.video_tools import render_video
-                result["video_url"] = await render_video(result, {"commits": commits}, repo_name)
-            except Exception as e:
-                result["video_url"] = f"Video failed: {e}"
-        return result
-    finally:
-        if cloned: cleanup_repo(local_path)
+    viz = await asyncio.get_event_loop().run_in_executor(None, _collect, local_path)
+    summary_text = _summary(viz)
+    narrative = await invoke_with_rotation([
+        SystemMessage(content="You are the Visualization Agent for RepoAtlas AI. Write a concise data-driven narrative. Max 150 words."),
+        HumanMessage(content=f"{summary_text}\n\nQUERY: {query}"),
+    ], model="openai/gpt-oss-20b")
+    commits = get_commit_log.invoke({"repo_path": local_path, "limit": 10})
+    result = {**viz, "narrative": narrative, "summary": summary_text, "video_url": None}
+    if generate_video:
+        try:
+            from app.tools.video_tools import render_video
+            result["video_url"] = await render_video(result, {"commits": commits}, repo_name)
+        except Exception as e:
+            result["video_url"] = f"Video failed: {e}"
+    return result

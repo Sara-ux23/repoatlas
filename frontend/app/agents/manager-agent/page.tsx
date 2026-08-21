@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, XCircle, Loader2, Bot, Compass, Search, Brain, Palette, ExternalLink, RefreshCw } from 'lucide-react';
 import { Navbar } from '../../../components/Navbar';
-import { Footer } from '../../../components/Footer';
+
 import type { ManagerResponse } from '../../../lib/api';
 import { clearSession, clearLocalSession } from '../../../lib/api';
 import { useRepo } from '../../../lib/repoContext';
@@ -35,6 +35,7 @@ export default function ManagerAgentPage() {
   const { analysisResult, repoPath } = useRepo();
   const [result, setResult] = useState<ManagerResponse | null>(null);
   const [repoUrl, setRepoUrl] = useState<string>('');
+  const [splineReady, setSplineReady] = useState(false);
 
   const handleNewRepo = async () => {
     clearLocalSession();
@@ -43,13 +44,33 @@ export default function ManagerAgentPage() {
   };
 
   useEffect(() => {
-    // Load official Spline WebGL viewer script
+    // Read analysis result immediately from context or storage — don't wait for Spline
+    try {
+      if (analysisResult) {
+        setResult(analysisResult as ManagerResponse);
+        if (analysisResult.repo_path) setRepoUrl(analysisResult.repo_path);
+      } else {
+        const raw = sessionStorage.getItem('repoatlas_result') || localStorage.getItem('repoatlas_result');
+        const url = sessionStorage.getItem('repoatlas_url') || localStorage.getItem('repoatlas_url');
+        if (raw) setResult(JSON.parse(raw) as ManagerResponse);
+        if (url) setRepoUrl(url);
+        else if (repoPath) setRepoUrl(repoPath);
+      }
+      if (repoPath) setRepoUrl(repoPath);
+    } catch {
+      if (repoPath) setRepoUrl(repoPath);
+    }
+
+    // Immediately load Spline viewer script for fast sub-second 3D robot rendering
     const existingScript = document.querySelector('script[src*="spline-viewer"]');
     if (!existingScript) {
       const script = document.createElement('script');
       script.type = 'module';
       script.src = 'https://unpkg.com/@splinetool/viewer@1.9.72/build/spline-viewer.js';
+      script.onload = () => setSplineReady(true);
       document.head.appendChild(script);
+    } else {
+      setSplineReady(true);
     }
 
     // Hide Spline logo via shadow DOM
@@ -70,20 +91,9 @@ export default function ManagerAgentPage() {
           viewer.shadowRoot.appendChild(style);
         }
       }
-    }, 50);
+    }, 30);
 
-    // Read real analysis result from sessionStorage or context
-    try {
-      const raw = sessionStorage.getItem('repoatlas_result') || localStorage.getItem('repoatlas_result');
-      const url = sessionStorage.getItem('repoatlas_url') || localStorage.getItem('repoatlas_url');
-      if (raw) setResult(JSON.parse(raw) as ManagerResponse);
-      if (url) setRepoUrl(url);
-      else if (repoPath) setRepoUrl(repoPath);
-    } catch {
-      if (repoPath) setRepoUrl(repoPath);
-    }
-
-    return () => clearInterval(interval);
+    return () => { clearInterval(interval); };
   }, [repoPath]);
 
   return (
@@ -100,9 +110,6 @@ export default function ManagerAgentPage() {
         >
           {/* Centered Header Block */}
           <div className="space-y-1">
-            <span className="text-xs font-mono text-[#2563EB] uppercase tracking-wider block font-semibold">
-              Pipeline Stage 02
-            </span>
             <h1 className="text-3xl sm:text-5xl font-extrabold text-[#111114] tracking-tight">
               Manager Agent
             </h1>
@@ -112,9 +119,10 @@ export default function ManagerAgentPage() {
           <div className="w-full flex items-center justify-center relative pt-2">
             <div className="absolute w-[500px] h-[500px] rounded-full bg-[#2563EB]/15 blur-3xl pointer-events-none animate-pulse" />
             <div className="relative z-10 w-full max-w-6xl h-[560px] sm:h-[700px] overflow-hidden bg-transparent flex items-center justify-center">
+              {splineReady ? (
               <spline-viewer
                 url="https://prod.spline.design/a5tBEkRdYTDjQ8t0/scene.splinecode"
-                loading-anim-type="spinner"
+                loading-anim-type="none"
                 style={{
                   position: 'absolute',
                   top: '20px',
@@ -123,6 +131,12 @@ export default function ManagerAgentPage() {
                   height: 'calc(100% + 140px)',
                 }}
               />
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-3 text-[#9CA3AF]">
+                  <div className="w-10 h-10 border-4 border-[#2563EB]/20 border-t-[#2563EB] rounded-full animate-spin" />
+                  <span className="text-xs font-mono">Loading 3D scene…</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -327,7 +341,7 @@ export default function ManagerAgentPage() {
         </motion.section>
       </div>
 
-      <Footer />
+
     </main>
   );
 }

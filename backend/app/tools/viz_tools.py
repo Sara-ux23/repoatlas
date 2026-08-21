@@ -9,12 +9,23 @@ from pathlib import Path
 from collections import defaultdict
 from langchain_core.tools import tool
 
-IGNORED_DIRS = {".git", "node_modules", "__pycache__", ".venv", "dist", "build", ".next"}
+IGNORED_DIRS = {
+    ".git", "node_modules", "__pycache__", ".venv", "dist", "build", ".next",
+    "coverage", ".cache", ".idea", ".vscode", "vendor", "out", "target"
+}
+IGNORED_EXTS = {".map", ".min.js", ".min.css", ".png", ".jpg", ".jpeg", ".gif", ".ico", ".svg", ".zip", ".tar", ".gz"}
 
 
 def _iter_files(root: Path):
     for fp in sorted(root.rglob("*")):
         if fp.is_file() and not any(p in IGNORED_DIRS for p in fp.parts):
+            if fp.suffix.lower() in IGNORED_EXTS or fp.name.endswith(".min.js") or fp.name.endswith(".min.css"):
+                continue
+            try:
+                if fp.stat().st_size > 1_000_000:  # Skip files larger than 1MB
+                    continue
+            except Exception:
+                continue
             yield fp
 
 
@@ -117,15 +128,21 @@ def get_dependency_graph(repo_path: str) -> dict:
         r"^from\s+([.\w]+)\s+import",                           # Python import
     ]
 
+    SUPPORTED_EXTS = {
+        ".js", ".jsx", ".ts", ".tsx", ".py", ".html", ".css", ".scss", ".json",
+        ".md", ".java", ".c", ".cpp", ".h", ".hpp", ".go", ".rs", ".php", ".rb",
+        ".vue", ".svelte", ".yaml", ".yml", ".sql"
+    }
+
     for fp in _iter_files(root):
-        if fp.suffix not in {".js", ".jsx", ".ts", ".tsx", ".py"}:
+        if fp.suffix.lower() not in SUPPORTED_EXTS:
             continue
         rel = str(fp.relative_to(root)).replace("\\", "/")
         node_id = rel
         nodes[node_id] = {
             "id": node_id,
             "label": fp.name,
-            "type": fp.suffix.lstrip("."),
+            "type": fp.suffix.lstrip(".") or "file",
             "path": rel,
         }
         try:

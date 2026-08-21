@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 
-from app.agents.trace_agent import run_trace
+from app.agents.trace_agent import run_trace, run_repo_comparison
 from app.core.repo_session import repo_session
 
 router = APIRouter(prefix="/trace", tags=["Trace Agent"])
@@ -27,27 +27,45 @@ class TraceResponse(BaseModel):
     summary: str            # AI-generated analysis
 
 
+class CompareRequest(BaseModel):
+    repo_url_1: str
+    repo_url_2: str
+
+
+class CompareResponse(BaseModel):
+    repo1: dict
+    repo2: dict
+    verdict: str
+
+
 @router.post("/", response_model=TraceResponse)
 async def trace_repo(request: TraceRequest):
     """
     Trace git history of a repository.
-
-    - repo_path: optional path/URL (uses backend session if omitted)
-    - query: what you want to know (e.g. 'who changed auth.py most?')
-    - file_path: optional file to trace (e.g. 'src/auth.py')
     """
     try:
-        # Use session repo if no path provided
         if request.repo_path:
             repo_path = request.repo_path
         elif repo_session.local_path:
             repo_path = repo_session.local_path
         else:
             raise HTTPException(status_code=400, detail="No repository loaded. Please analyze a repo first on the Product page.")
-        
+
         result = await run_trace(repo_path, request.query, request.file_path)
         return TraceResponse(**result)
     except HTTPException:
         raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/compare", response_model=CompareResponse)
+async def compare_repos(request: CompareRequest):
+    """
+    Compare two repositories side-by-side across velocity, contributors, security, and complexity.
+    """
+    try:
+        result = await run_repo_comparison(request.repo_url_1, request.repo_url_2)
+        return CompareResponse(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

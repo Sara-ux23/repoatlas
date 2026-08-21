@@ -1,7 +1,6 @@
 import React from 'react';
 import { RepoProvider } from '../lib/repoContext';
 import { RepoStatus } from '../components/RepoStatus';
-import { RepoChat } from '../components/RepoChat';
 
 export const metadata = {
   title: 'RepoAtlas AI — See your codebase. Not just search it.',

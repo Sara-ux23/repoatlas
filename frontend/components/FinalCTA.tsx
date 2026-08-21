@@ -3,7 +3,11 @@ import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import { MascotOrb } from './MascotOrb';
 
-export const FinalCTA: React.FC = () => {
+interface FinalCTAProps {
+  onSignInClick?: () => void;
+}
+
+export const FinalCTA: React.FC<FinalCTAProps> = ({ onSignInClick }) => {
   return (
     <section className="py-28 md:py-36 bg-[#FAFAFA] relative overflow-hidden border-t border-[#E5E5E7]">
       {/* Ambient background blob field removed */}
@@ -30,13 +34,23 @@ export const FinalCTA: React.FC = () => {
             </p>
 
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <a
-                href="#hero-analyzer"
-                className="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-white bg-[#2563EB] hover:bg-[#1D4ED8] shadow-sm transition-all text-base flex items-center justify-center gap-2"
-              >
-                <span>Analyze Your First Repo — Free</span>
-                <ArrowRight className="w-5 h-5" />
-              </a>
+              {onSignInClick ? (
+                <button
+                  onClick={onSignInClick}
+                  className="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-white bg-[#2563EB] hover:bg-[#1D4ED8] shadow-sm transition-all text-base flex items-center justify-center gap-2"
+                >
+                  <span>Analyze Your First Repo — Free</span>
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              ) : (
+                <a
+                  href="#hero-analyzer"
+                  className="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-white bg-[#2563EB] hover:bg-[#1D4ED8] shadow-sm transition-all text-base flex items-center justify-center gap-2"
+                >
+                  <span>Analyze Your First Repo — Free</span>
+                  <ArrowRight className="w-5 h-5" />
+                </a>
+              )}
             </div>
           </div>
 

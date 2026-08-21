@@ -13,9 +13,15 @@ from app.auth.dependencies import get_current_user
 router = APIRouter(prefix="/explorer", tags=["Explorer Agent"])
 
 
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+
 class ExploreRequest(BaseModel):
     repo_path: Optional[str] = None  # Optional - will use session if not provided
     query: str                        # natural language question
+    chat_history: Optional[list[ChatMessage]] = None
 
 
 class ExploreResponse(BaseModel):
@@ -32,6 +38,7 @@ async def explore_repo(
 
     - repo_path: optional path/URL (uses backend session if omitted)
     - query: what you want to understand (e.g. 'explain the folder structure')
+    - chat_history: optional list of previous conversation turns
     """
     try:
         # Use session repo if no path provided
@@ -45,7 +52,11 @@ async def explore_repo(
                 detail="No repository loaded. Please analyze a repo first on the Product page.",
             )
 
-        result = await run_explorer(repo_path, request.query)
+        chat_history_dicts = None
+        if request.chat_history:
+            chat_history_dicts = [{"role": msg.role, "content": msg.content} for msg in request.chat_history]
+
+        result = await run_explorer(repo_path, request.query, chat_history=chat_history_dicts)
         return ExploreResponse(result=result)
     except HTTPException:
         raise

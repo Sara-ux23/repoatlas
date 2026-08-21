@@ -8,7 +8,24 @@ import json
 from pathlib import Path
 from langchain_core.tools import tool
 
-IGNORED_DIRS = {".git", "node_modules", "__pycache__", ".venv", "dist", "build", ".next"}
+IGNORED_DIRS = {
+    ".git", "node_modules", "__pycache__", ".venv", "dist", "build", ".next",
+    "coverage", ".cache", ".idea", ".vscode", "vendor", "out", "target"
+}
+IGNORED_EXTS = {".map", ".min.js", ".min.css", ".png", ".jpg", ".jpeg", ".gif", ".ico", ".svg", ".zip", ".tar", ".gz", ".woff", ".woff2", ".ttf", ".eot"}
+
+
+def _iter_files(root: Path):
+    for fp in sorted(root.rglob("*")):
+        if fp.is_file() and not any(p in IGNORED_DIRS for p in fp.parts):
+            if fp.suffix.lower() in IGNORED_EXTS or fp.name.endswith(".min.js") or fp.name.endswith(".min.css"):
+                continue
+            try:
+                if fp.stat().st_size > 500_000:  # Skip files larger than 500KB for regex scans
+                    continue
+            except Exception:
+                continue
+            yield fp
 
 # ── Secret patterns ────────────────────────────────────────────────────────────
 SECRET_PATTERNS = {
@@ -68,10 +85,7 @@ VULN_PACKAGES = {
 }
 
 
-def _iter_files(root: Path):
-    for fp in sorted(root.rglob("*")):
-        if fp.is_file() and not any(p in IGNORED_DIRS for p in fp.parts):
-            yield fp
+
 
 
 @tool
