@@ -19,12 +19,14 @@ from app.api.chat import router as chat_router
 
 app = FastAPI(title="RepoAtlas AI", version="0.1.0")
 
-# The Vite dev server proxies /api/* → localhost:8000, so the browser sees
-# same-origin requests and never sends a preflight.
-# Keep explicit origins here as a fallback for direct API access / production.
+import os
+
+frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3001")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        frontend_url,
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:3001",

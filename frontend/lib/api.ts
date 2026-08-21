@@ -3,7 +3,7 @@
  * Talks to the FastAPI backend at localhost:8000
  */
 
-const BASE_URL = '/api';
+const BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api';
 
 /** Returns Authorization header if a Supabase session exists, otherwise empty object. */
 async function authHeader(): Promise<Record<string, string>> {
