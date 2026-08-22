@@ -712,17 +712,7 @@ export default function ExplorerAgentPage() {
               )}
             </div>
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => {
-                  setRepoUrl('');
-                  setRepoPath(null);
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E5E5E7] hover:bg-[#EFF6FF] hover:border-[#BFDBFE] text-[#2563EB] text-xs font-medium transition-colors cursor-pointer"
-                title="Load another repository"
-              >
-                <FolderGit2 className="w-3.5 h-3.5" />
-                {repoUrl ? 'Change Repo' : 'Load Repo'}
-              </button>
+
               {repoUrl && (
                 <button
                   onClick={handleClearHistory}
