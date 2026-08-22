@@ -117,6 +117,8 @@ export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean
   }, []);
 
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const isAuthOrLanding = isLandingPage || pathname === '/auth' || pathname === '/' || hideAgents;
+  const showRepoChip = Boolean(repoPath && !isAuthOrLanding);
 
   // Authenticated: flat individual agent links
   const agentNavItems = [
@@ -157,8 +159,8 @@ export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-1 flex-1 justify-center">
-          {/* Repo chip (only shown when a repo is analyzed) */}
-          {repoPath && (
+          {/* Repo chip (only shown in workspace when a repo is analyzed) */}
+          {showRepoChip && (
             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#2563EB]/10 border border-[#2563EB]/20 mr-2">
               <FolderGit2 className="w-3.5 h-3.5 text-[#2563EB]" />
               <span className="text-xs font-mono text-[#2563EB] max-w-[140px] truncate" title={repoPath}>
@@ -285,8 +287,8 @@ export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="md:hidden bg-white border-b border-[#E5E5E7] px-5 py-5 space-y-3 shadow-sm">
-          {/* Repo chip in mobile menu (only shown when a repo is analyzed) */}
-          {repoPath && (
+          {/* Repo chip in mobile menu (only shown in workspace when a repo is analyzed) */}
+          {showRepoChip && (
             <div className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-[#2563EB]/5 border border-[#2563EB]/20 text-[#2563EB] text-sm font-semibold">
               <div className="flex items-center gap-2.5 min-w-0">
                 <FolderGit2 className="w-4 h-4 shrink-0" />
