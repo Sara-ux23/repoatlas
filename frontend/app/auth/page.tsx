@@ -221,8 +221,8 @@ export default function AuthPage() {
 
   return (
     <main className="min-h-screen bg-white text-[#111114] selection:bg-[#2563EB]/20 selection:text-[#2563EB] overflow-x-hidden">
-      {/* Full product page — Navbar shows Product, Agents dropdown, Docs */}
-      <Navbar onSignInClick={() => setModalOpen(true)} isLandingPage />
+      {/* Full product page — Navbar shows Product, How it Works, Technologies, Docs */}
+      <Navbar hideAgents hideAuthButtons isLandingPage />
       <Hero onAnalyze={() => {}} onSignInClick={() => setModalOpen(true)} hideRepoInput />
       <PipelineFlow />
       <TechStack />
