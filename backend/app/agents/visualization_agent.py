@@ -76,7 +76,7 @@ async def run_visualization(repo_path: str, query: str = "full repo overview", g
     narrative = await invoke_with_rotation([
         SystemMessage(content="You are the Visualization Agent for RepoAtlas AI. Write a concise data-driven narrative. Max 150 words."),
         HumanMessage(content=f"{summary_text}\n\nQUERY: {query}"),
-    ], model="llama3-70b-8192")
+    ], model="llama-3.1-8b-instant")
     commits = get_commit_log.invoke({"repo_path": local_path, "limit": 10})
     result = {**viz, "narrative": narrative, "summary": summary_text, "video_url": None}
     if generate_video:

@@ -77,4 +77,4 @@ async def run_explorer(
         )
     )
 
-    return await invoke_with_rotation(messages, model="llama3-70b-8192")
+    return await invoke_with_rotation(messages, model="llama-3.1-8b-instant")
