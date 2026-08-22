@@ -27,8 +27,12 @@ function AppRouter() {
     );
   }
 
-  // Always allow the /auth route
+  // Always allow the /auth route for unauthenticated users
   if (pathname === '/auth' || pathname.startsWith('/auth')) {
+    if (user) {
+      window.location.href = '/agents/explorer-agent';
+      return null;
+    }
     return <AuthPage />;
   }
 

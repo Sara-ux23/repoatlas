@@ -49,7 +49,7 @@ function SignInModal({ onClose }: { onClose: () => void }) {
     } else if (mode === 'signup') {
       setSuccess('Account created! Check your email to confirm your address.');
     } else {
-      onClose();
+      window.location.href = '/agents/explorer-agent';
     }
   };
 
@@ -196,10 +196,10 @@ export default function AuthPage() {
   const { user, loading } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
 
-  // Close modal if already signed in
+  // Redirect to explorer agent if already signed in
   useEffect(() => {
     if (!loading && user) {
-      setModalOpen(false);
+      window.location.href = '/agents/explorer-agent';
     }
   }, [user, loading]);
 
