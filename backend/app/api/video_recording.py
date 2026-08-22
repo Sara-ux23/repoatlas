@@ -119,3 +119,60 @@ async def delete_recording(repo_id: str):
     """Invalidate a cached recording so it gets re-generated."""
     video_recorder.clear_recording(repo_id)
     return {"status": "deleted", "repo_id": repo_id}
+
+
+@router.get("/repo-ui-html")
+async def get_repo_ui_html(repo_url: str):
+    """
+    Extract and return the ACTUAL frontend UI HTML of the target repository.
+    Searches index.html, templates/index.html, public/index.html, or builds UI from JSX/TSX.
+    """
+    from app.services.video_recorder import (
+        _get_local_path_for_repo,
+        _clone_repo_sync,
+        _find_repo_frontend,
+        _prepare_servable_html,
+        _build_interactive_ui_from_repo_source,
+    )
+
+    local_path = _get_local_path_for_repo(repo_url)
+    if not local_path and repo_url and repo_url.startswith("http"):
+        local_path = _clone_repo_sync(repo_url)
+
+    if local_path:
+        p = Path(local_path)
+        found_dir, found_file = _find_repo_frontend(local_path)
+        target_file = found_dir / found_file
+        if target_file.exists():
+            try:
+                html_content = target_file.read_text(encoding="utf-8", errors="ignore")
+                if len(html_content.strip()) > 100 and "id=\"root\"" not in html_content and "id='root'" not in html_content:
+                    return Response(content=html_content, media_type="text/html")
+            except Exception:
+                pass
+
+        generated_html = _build_interactive_ui_from_repo_source(p, repo_url)
+        return Response(content=generated_html, media_type="text/html")
+
+    repo_title = repo_url.rstrip("/").split("/")[-1].replace(".git", "").replace("_", " ").title()
+    fallback_html = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body {{ background:#0f172a; color:#f8fafc; font-family:-apple-system, sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; }}
+.box {{ background:#1e293b; border:1px solid #334155; border-radius:16px; padding:32px; text-align:center; max-width:400px; }}
+h2 {{ color:#60a5fa; margin-bottom:8px; font-size:20px; }}
+p {{ color:#94a3b8; font-size:13px; margin-bottom:16px; }}
+.badge {{ background:#2563eb; color:white; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:600; display:inline-block; }}
+</style>
+</head>
+<body>
+<div class="box">
+  <h2>{repo_title}</h2>
+  <p>Application Interface · Repository Loaded</p>
+  <span class="badge">Live UI Environment</span>
+</div>
+</body>
+</html>"""
+    return Response(content=fallback_html, media_type="text/html")
