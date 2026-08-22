@@ -197,10 +197,10 @@ export default function AuthPage() {
   const { user, loading } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
 
-  // Navigate to explorer agent if already signed in (SPA — no reload)
+  // Navigate to home repo loading page if already signed in (SPA — no reload)
   useEffect(() => {
     if (!loading && user) {
-      history.pushState(null, '', '/agents/explorer-agent');
+      history.pushState(null, '', '/');
       window.dispatchEvent(new PopStateEvent('popstate'));
     }
   }, [user, loading]);

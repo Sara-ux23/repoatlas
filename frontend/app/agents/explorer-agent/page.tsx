@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Navbar } from '../../../components/Navbar';
 import { Footer } from '../../../components/Footer';
+import { AnalyzingLoader } from '../../../components/AnalyzingLoader';
 import { useRepo } from '../../../lib/repoContext';
 import {
   getChatHistory, saveChatMessage, clearChatHistory, getAnalysisHistory, AnalysisSummary,
@@ -105,6 +106,9 @@ function LoadRepoSection({
           ))}
         </div>
       </div>
+
+      {/* Analyzing loader with character animation */}
+      <AnalyzingLoader visible={loading} done={false} />
     </motion.div>
   );
 }

@@ -49,7 +49,7 @@ function useSimulatedProgress(visible: boolean, done: boolean) {
 function Character() {
   return (
     <video
-      src="/animations/Screen Recording 2026-08-10 010759.mp4"
+      src="/animations/Screen%20Recording%202026-08-10%20010759.mp4"
       autoPlay
       loop
       muted

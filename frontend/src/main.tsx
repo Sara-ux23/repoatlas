@@ -46,10 +46,10 @@ function AppRouter() {
 
   // Landing / Auth route handling
   if (pathname === '/' || pathname === '/auth' || pathname.startsWith('/auth')) {
-    if (user) {
-      return <ExplorerAgentPage />;
+    if (!user && (pathname === '/auth' || pathname.startsWith('/auth'))) {
+      return <AuthPage />;
     }
-    return <AuthPage />;
+    return <Home />;
   }
 
   // Docs is publicly accessible (no login required)
