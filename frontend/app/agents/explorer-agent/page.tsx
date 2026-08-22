@@ -700,8 +700,8 @@ export default function ExplorerAgentPage() {
           className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white"
         >
           {/* Card header */}
-          <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-[#E5E5E7] bg-white shrink-0 shadow-xs">
-            <div className="flex items-center gap-2 sm:gap-3.5 min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-[#E5E5E7] bg-white shrink-0 shadow-xs">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3.5 min-w-0">
               {/* Sidebar toggle */}
               <button
                 onClick={() => setSidebarOpen((o) => !o)}
@@ -717,14 +717,13 @@ export default function ExplorerAgentPage() {
                 <h1 className="text-lg sm:text-xl font-bold text-[#111114] leading-none">Explorer Agent</h1>
               </div>
               {repoUrl && (
-                <span className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-[#2563EB] text-xs font-mono font-medium truncate max-w-[120px] lg:max-w-none">
+                <span className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-[#2563EB] text-[11px] sm:text-xs font-mono font-medium truncate max-w-[160px] sm:max-w-none">
                   <GitBranch className="w-3.5 h-3.5 shrink-0" />
                   <span className="truncate">{repoLabel(repoUrl)}</span>
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2">
-
+            <div className="flex items-center gap-2 shrink-0">
               {repoUrl && (
                 <button
                   onClick={handleClearHistory}
@@ -732,12 +731,12 @@ export default function ExplorerAgentPage() {
                   title="Clear chat thread"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Clear Thread</span>
+                  <span className="inline">Clear Thread</span>
                 </button>
               )}
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#E5E5E7] bg-[#FAFAFA]">
+              <div className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-full border border-[#E5E5E7] bg-[#FAFAFA]">
                 <span className="w-2 h-2 rounded-full bg-[#4ADE80] animate-pulse" />
-                <span className="text-[11px] font-mono text-[#6B7280] font-medium">Active Stream</span>
+                <span className="text-[10px] sm:text-[11px] font-mono text-[#6B7280] font-medium">Active Stream</span>
               </div>
             </div>
           </div>
