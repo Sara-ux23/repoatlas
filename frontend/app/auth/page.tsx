@@ -49,7 +49,8 @@ function SignInModal({ onClose }: { onClose: () => void }) {
     } else if (mode === 'signup') {
       setSuccess('Account created! Check your email to confirm your address.');
     } else {
-      window.location.href = '/agents/explorer-agent';
+      history.pushState(null, '', '/agents/explorer-agent');
+      window.dispatchEvent(new PopStateEvent('popstate'));
     }
   };
 
@@ -196,10 +197,11 @@ export default function AuthPage() {
   const { user, loading } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
 
-  // Redirect to explorer agent if already signed in
+  // Navigate to explorer agent if already signed in (SPA — no reload)
   useEffect(() => {
     if (!loading && user) {
-      window.location.href = '/agents/explorer-agent';
+      history.pushState(null, '', '/agents/explorer-agent');
+      window.dispatchEvent(new PopStateEvent('popstate'));
     }
   }, [user, loading]);
 
