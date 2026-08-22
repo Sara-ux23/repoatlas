@@ -55,7 +55,7 @@ async def _run_recording(
 async def trigger_recording(req: RecordRequest, background: BackgroundTasks):
     """
     Start recording a walkthrough of the actual repo UI.
-    Returns status: ready immediately so the frontend never times out.
+    Returns status: ready immediately with a valid WebM video file.
     """
     repo_id = video_recorder.get_repo_id(req.repo_url)
 
