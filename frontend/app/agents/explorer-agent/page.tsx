@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Compass, Send, User, CornerDownLeft, Loader2,
   Clock, ChevronRight, GitBranch, Plus, X, PanelLeft, Trash2,
-  MessageSquare,
+  MessageSquare, FolderGit2, Sparkles, Search,
 } from 'lucide-react';
 import { Navbar } from '../../../components/Navbar';
 import { Footer } from '../../../components/Footer';
@@ -15,6 +15,99 @@ import {
 } from '../../../lib/api';
 
 const BASE_URL = (import.meta as any).env?.VITE_API_URL || 'https://repoatlas.onrender.com';
+
+/* ── Load Repo Section Component ── */
+function LoadRepoSection({
+  onLoadRepo,
+}: {
+  onLoadRepo: (url: string) => void;
+}) {
+  const [urlInput, setUrlInput] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!urlInput.trim()) return;
+    setLoading(true);
+    onLoadRepo(urlInput.trim());
+    setLoading(false);
+  };
+
+  const sampleRepos = [
+    { label: 'shofiahmed69/Fake-Headline-Generator', url: 'https://github.com/shofiahmed69/Fake-Headline-Generator' },
+    { label: 'gabrielecirulli/2048', url: 'https://github.com/gabrielecirulli/2048' },
+    { label: 'Sara-ux23/Fower_classify', url: 'https://github.com/Sara-ux23/Fower_classify' },
+    { label: 'facebook/react', url: 'https://github.com/facebook/react' },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-8 rounded-2xl bg-white border border-[#E2E8F0] shadow-xl max-w-2xl mx-auto my-8 space-y-6 text-left"
+    >
+      <div className="flex items-center gap-3.5">
+        <div className="p-3 rounded-xl bg-[#2563EB]/10 text-[#2563EB] shrink-0">
+          <FolderGit2 className="w-7 h-7" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-[#111114]">Load a Repository to Analyze</h2>
+          <p className="text-xs text-[#6B7280] mt-0.5">Enter any GitHub repository URL or click one of the recent examples below.</p>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2.5">
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 text-[#9CA3AF] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            type="text"
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            placeholder="e.g. shofiahmed69/Fake-Headline-Generator"
+            className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#CBD5E1] bg-white text-sm text-[#111114] placeholder-[#9CA3AF] focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 transition-all font-mono"
+            disabled={loading}
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={!urlInput.trim() || loading}
+          className="px-6 py-3 rounded-xl bg-[#2563EB] text-white text-sm font-semibold hover:bg-[#1D4ED8] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Loading...
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4" />
+              Analyze Repo
+            </>
+          )}
+        </button>
+      </form>
+
+      <div className="space-y-2.5 pt-4 border-t border-[#F1F5F9]">
+        <span className="text-xs font-semibold text-[#6B7280]">Quick Select Examples:</span>
+        <div className="flex flex-wrap gap-2">
+          {sampleRepos.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              onClick={() => {
+                setUrlInput(item.url);
+                onLoadRepo(item.url);
+              }}
+              className="px-3 py-1.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#BFDBFE] hover:bg-[#EFF6FF] text-[#2563EB] text-xs font-mono font-medium transition-all cursor-pointer shadow-2xs"
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 /* ── Types ── */
 interface Message {
@@ -380,6 +473,34 @@ export default function ExplorerAgentPage() {
     }
   }, [messages, isTyping]);
 
+  /* ── Load / Change repository ── */
+  const handleLoadRepo = (url: string) => {
+    const formatted = url.startsWith('http') ? url : `https://github.com/${url.replace(/^\//, '')}`;
+    setRepoPath(formatted);
+    setRepoUrl(formatted);
+    localStorage.setItem('repoatlas_url', formatted);
+    sessionStorage.setItem('repoatlas_url', formatted);
+
+    const newSession: ChatSession = {
+      id: `exp-session-${Date.now()}`,
+      title: repoLabel(formatted) || 'Explorer Chat',
+      repo_url: formatted,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      messages: [{
+        id: 'welcome',
+        role: 'assistant',
+        text: `Repository loaded: \`${formatted}\`\n\nAsk me anything about its code structure, components, architecture, or features!`,
+        ts: nowStr(),
+      }],
+    };
+
+    const updated = [newSession, ...sessions.filter((s) => s.repo_url !== formatted)];
+    saveSessionsToStorage(updated);
+    setActiveSessionId(newSession.id);
+    setMessages(newSession.messages);
+  };
+
   /* ── Switch session ── */
   const handleSelectSession = (session: ChatSession) => {
     setActiveSessionId(session.id);
@@ -591,10 +712,21 @@ export default function ExplorerAgentPage() {
               )}
             </div>
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  setRepoUrl('');
+                  setRepoPath(null);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E5E5E7] hover:bg-[#EFF6FF] hover:border-[#BFDBFE] text-[#2563EB] text-xs font-medium transition-colors cursor-pointer"
+                title="Load another repository"
+              >
+                <FolderGit2 className="w-3.5 h-3.5" />
+                {repoUrl ? 'Change Repo' : 'Load Repo'}
+              </button>
               {repoUrl && (
                 <button
                   onClick={handleClearHistory}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-[#E5E5E7] hover:bg-[#FEF2F2] hover:border-[#FCA5A5] text-[#EF4444] text-xs font-medium transition-colors"
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-[#E5E5E7] hover:bg-[#FEF2F2] hover:border-[#FCA5A5] text-[#EF4444] text-xs font-medium transition-colors cursor-pointer"
                   title="Clear chat thread"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -608,55 +740,64 @@ export default function ExplorerAgentPage() {
             </div>
           </div>
 
-          {/* Messages Container (centered & wide like ChatGPT) */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 md:px-8 py-6 scroll-smooth">
-            <div className="max-w-4xl mx-auto space-y-6">
-              {messages.map((msg, idx) => (
-                <MessageBubble key={msg.id} msg={msg} index={idx} />
-              ))}
-              <AnimatePresence>{isTyping && <TypingIndicator />}</AnimatePresence>
+          {/* Messages Container or Load Repo Card */}
+          {!repoUrl ? (
+            <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 flex items-center justify-center">
+              <LoadRepoSection onLoadRepo={handleLoadRepo} />
             </div>
-          </div>
+          ) : (
+            <>
+              {/* Messages Container (centered & wide like ChatGPT) */}
+              <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 md:px-8 py-6 scroll-smooth">
+                <div className="max-w-4xl mx-auto space-y-6">
+                  {messages.map((msg, idx) => (
+                    <MessageBubble key={msg.id} msg={msg} index={idx} />
+                  ))}
+                  <AnimatePresence>{isTyping && <TypingIndicator />}</AnimatePresence>
+                </div>
+              </div>
 
-          {/* Input Area (Expanded & Larger) */}
-          <div className="shrink-0 px-4 md:px-8 py-4 border-t border-[#E5E5E7] bg-white">
-            <div className="max-w-4xl mx-auto">
-              <div className="flex items-end gap-3 p-3 rounded-2xl border border-[#E5E5E7] bg-[#FAFAFA] focus-within:border-[#2563EB] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#2563EB]/10 transition-all shadow-md">
-                <textarea
-                  ref={textareaRef}
-                  rows={1}
-                  value={inputValue}
-                  onChange={(e) => {
-                    setInputValue(e.target.value);
-                    e.target.style.height = 'auto';
-                    e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px';
-                  }}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Ask the Explorer Agent about this repo…"
-                  disabled={isTyping}
-                  className="flex-1 resize-none bg-transparent text-[15px] text-[#111114] placeholder-[#9CA3AF] px-3 py-2 focus:outline-none leading-relaxed disabled:opacity-50"
-                  style={{ minHeight: '44px', maxHeight: '160px' }}
-                />
-                <motion.button
-                  onClick={handleSend}
-                  disabled={!inputValue.trim() || isTyping}
-                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                  className="shrink-0 w-11 h-11 rounded-xl bg-[#2563EB] text-white flex items-center justify-center shadow-md disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#1D4ED8] transition-colors"
-                >
-                  {isTyping ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                </motion.button>
+              {/* Input Area (Expanded & Larger) */}
+              <div className="shrink-0 px-4 md:px-8 py-4 border-t border-[#E5E5E7] bg-white">
+                <div className="max-w-4xl mx-auto">
+                  <div className="flex items-end gap-3 p-3 rounded-2xl border border-[#E5E5E7] bg-[#FAFAFA] focus-within:border-[#2563EB] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#2563EB]/10 transition-all shadow-md">
+                    <textarea
+                      ref={textareaRef}
+                      rows={1}
+                      value={inputValue}
+                      onChange={(e) => {
+                        setInputValue(e.target.value);
+                        e.target.style.height = 'auto';
+                        e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px';
+                      }}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Ask the Explorer Agent about this repo…"
+                      disabled={isTyping}
+                      className="flex-1 resize-none bg-transparent text-[15px] text-[#111114] placeholder-[#9CA3AF] px-3 py-2 focus:outline-none leading-relaxed disabled:opacity-50"
+                      style={{ minHeight: '44px', maxHeight: '160px' }}
+                    />
+                    <motion.button
+                      onClick={handleSend}
+                      disabled={!inputValue.trim() || isTyping}
+                      whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                      className="shrink-0 w-11 h-11 rounded-xl bg-[#2563EB] text-white flex items-center justify-center shadow-md disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#1D4ED8] transition-colors"
+                    >
+                      {isTyping ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                    </motion.button>
+                  </div>
+                  <div className="flex items-center justify-between mt-2.5 px-2">
+                    <span className="text-[11px] font-mono text-[#9CA3AF] flex items-center gap-1.5">
+                      <CornerDownLeft className="w-3 h-3" />
+                      Enter to send · Shift+Enter for new line
+                    </span>
+                    <span className="text-[11px] font-mono text-[#9CA3AF]">
+                      Latency <span className="text-[#2563EB] font-semibold">&lt; 14ms</span>
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center justify-between mt-2.5 px-2">
-                <span className="text-[11px] font-mono text-[#9CA3AF] flex items-center gap-1.5">
-                  <CornerDownLeft className="w-3 h-3" />
-                  Enter to send · Shift+Enter for new line
-                </span>
-                <span className="text-[11px] font-mono text-[#9CA3AF]">
-                  Latency <span className="text-[#2563EB] font-semibold">&lt; 14ms</span>
-                </span>
-              </div>
-            </div>
-          </div>
+            </>
+          )}
         </motion.div>
       </div>
     </main>
