@@ -15,7 +15,7 @@ interface ProductVideoPlayerProps {
 type RecordingState = 'idle' | 'triggering' | 'recording' | 'ready' | 'error';
 
 const POLL_INTERVAL_MS = 4000;
-const MAX_POLLS = 60; // 4 min timeout
+const MAX_POLLS = 45; // ~3 min timeout
 
 export function ProductVideoPlayer({ repoUrl, analysisResult, onSelectFile }: ProductVideoPlayerProps) {
   const [state, setState] = useState<RecordingState>('idle');
@@ -103,12 +103,10 @@ export function ProductVideoPlayer({ repoUrl, analysisResult, onSelectFile }: Pr
     }
   }, [repoUrl, buildSessionData, stopPolling]);
 
-  // Auto-trigger when repoUrl appears
+  // Do NOT auto-trigger — wait for user click so the tab loads instantly
   useEffect(() => {
-    if (!repoUrl) return;
-    startRecording(false);
-    return stopPolling;
-  }, [repoUrl]); // eslint-disable-line react-hooks/exhaustive-deps
+    return stopPolling; // cleanup on unmount
+  }, [stopPolling]);
 
   // Video event handlers
   const onTimeUpdate = () => {
@@ -161,7 +159,14 @@ export function ProductVideoPlayer({ repoUrl, analysisResult, onSelectFile }: Pr
     return `${m}:${sec.toString().padStart(2, '0')}`;
   };
 
-  if (!repoUrl) return null;
+  if (!repoUrl) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
+        <Video className="w-8 h-8 text-[#4B5563]" />
+        <p className="text-sm text-[#8B949E]">Load a repository first to record a walkthrough.</p>
+      </div>
+    );
+  }
 
   const repoDisplayName = repoUrl.replace('https://github.com/', '').replace('http://github.com/', '');
 
@@ -199,8 +204,40 @@ export function ProductVideoPlayer({ repoUrl, analysisResult, onSelectFile }: Pr
       {/* Player card */}
       <div ref={containerRef} className="relative rounded-2xl border border-[#E5E5E7] bg-[#0D1117] overflow-hidden shadow-xl">
 
-        {/* ── Loading / Recording state ── */}
+        {/* ── Idle state: show start button ── */}
         <AnimatePresence mode="wait">
+          {state === 'idle' && (
+            <motion.div
+              key="idle"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center py-20 px-6 text-center gap-5"
+            >
+              <div className="relative flex items-center justify-center">
+                <div className="w-20 h-20 rounded-full bg-[#2563EB]/10 flex items-center justify-center">
+                  <div className="w-14 h-14 rounded-full bg-[#2563EB]/15 flex items-center justify-center">
+                    <Video className="w-7 h-7 text-[#2563EB]" />
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-white">Record a Live UI Walkthrough</p>
+                <p className="text-xs text-[#8B949E] max-w-xs">
+                  Capture a live Playwright walkthrough of <span className="text-white font-mono">{repoDisplayName}</span>'s interface. Takes ~2–3 minutes.
+                </p>
+              </div>
+              <button
+                onClick={() => startRecording(false)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-sm font-semibold transition-colors shadow-lg"
+              >
+                <Play className="w-4 h-4 fill-white" />
+                Start Recording
+              </button>
+            </motion.div>
+          )}
+
+          {/* ── Loading / Recording state ── */}
           {(state === 'triggering' || state === 'recording') && (
             <motion.div
               key="loading"

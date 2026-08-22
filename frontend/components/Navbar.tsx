@@ -52,11 +52,27 @@ function navigate(href: string) {
 }
 
 export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean; hideAuthButtons?: boolean; isLandingPage?: boolean }> = ({ onSignInClick, hideAgents, hideAuthButtons, isLandingPage = false }) => {
-  const { repoPath, clearRepo } = useRepo();
+  const { repoPath, setRepoPath, clearRepo } = useRepo();
   const { user, loading: authLoading, signOut } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [changeModalOpen, setChangeModalOpen] = useState(false);
+  const [modalInput, setModalInput] = useState('');
+
+  const handleSwitchRepo = (newUrl: string) => {
+    if (!newUrl.trim()) return;
+    setRepoPath(newUrl.trim());
+    setChangeModalOpen(false);
+    setModalInput('');
+  };
+
+  const sampleRepos = [
+    { label: 'shofiahmed69/Fake-Headline-Generator', url: 'https://github.com/shofiahmed69/Fake-Headline-Generator' },
+    { label: 'gabrielecirulli/2048', url: 'https://github.com/gabrielecirulli/2048' },
+    { label: 'Sara-ux23/Fower_classify', url: 'https://github.com/Sara-ux23/Fower_classify' },
+    { label: 'facebook/react', url: 'https://github.com/facebook/react' },
+  ];
 
   const handleClearRepo = async () => {
     try {
@@ -133,18 +149,20 @@ export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-1 flex-1 justify-center">
-          {/* Repo chip */}
-          {repoPath && (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#2563EB]/10 border border-[#2563EB]/20 mr-2">
-              <FolderGit2 className="w-4 h-4 text-[#2563EB]" />
-              <span className="text-xs font-mono text-[#2563EB] max-w-[150px] truncate" title={repoPath}>
-                {getRepoDisplayName(repoPath)}
-              </span>
-              <button onClick={handleClearRepo} className="ml-1 p-0.5 rounded-full hover:bg-[#2563EB]/20 transition-colors" title="Clear repository">
-                <XCircle className="w-3.5 h-3.5 text-[#2563EB]" />
-              </button>
-            </div>
-          )}
+          {/* Repo chip + Change Repo button */}
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#2563EB]/10 border border-[#2563EB]/20 mr-2">
+            <FolderGit2 className="w-3.5 h-3.5 text-[#2563EB]" />
+            <span className="text-xs font-mono text-[#2563EB] max-w-[140px] truncate" title={repoPath || 'No repository loaded'}>
+              {repoPath ? getRepoDisplayName(repoPath) : 'Select Repo'}
+            </span>
+            <button
+              onClick={() => setChangeModalOpen(true)}
+              className="ml-1 px-2 py-0.5 rounded-full bg-[#2563EB] text-white text-[10px] font-semibold hover:bg-[#1D4ED8] transition-colors cursor-pointer"
+              title="Change repository"
+            >
+              Change Repo
+            </button>
+          </div>
 
           {user ? (
             /* ── Authenticated: flat agent pills + Reports ── */
@@ -313,6 +331,63 @@ export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean
           </div>
         </motion.div>
       )}
+
+      {/* Change Repository Modal */}
+      <AnimatePresence>
+        {changeModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-[#E5E5E7] space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FolderGit2 className="w-5 h-5 text-[#2563EB]" />
+                  <h3 className="text-lg font-bold text-[#111114]">Change Repository</h3>
+                </div>
+                <button onClick={() => setChangeModalOpen(false)} className="p-1 rounded-lg hover:bg-gray-100 text-gray-500">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-mono text-[#6B7280]">GitHub Repository URL</label>
+                <input
+                  type="text"
+                  value={modalInput}
+                  onChange={(e) => setModalInput(e.target.value)}
+                  placeholder="e.g. facebook/react or full URL"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-sm font-mono focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
+                />
+                <button
+                  onClick={() => handleSwitchRepo(modalInput)}
+                  disabled={!modalInput.trim()}
+                  className="w-full py-2.5 rounded-xl bg-[#2563EB] text-white text-sm font-semibold hover:bg-[#1D4ED8] disabled:opacity-50 transition-colors"
+                >
+                  Load Repository
+                </button>
+              </div>
+
+              <div className="pt-2 border-t border-gray-100 space-y-2">
+                <p className="text-xs font-mono text-[#9CA3AF]">Or pick a quick example:</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {sampleRepos.map((repo) => (
+                    <button
+                      key={repo.url}
+                      onClick={() => handleSwitchRepo(repo.url)}
+                      className="px-2.5 py-1 rounded-lg bg-[#F1F5F9] hover:bg-[#2563EB]/10 hover:text-[#2563EB] text-xs font-mono text-[#475569] transition-colors"
+                    >
+                      {repo.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };
