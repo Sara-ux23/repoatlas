@@ -65,31 +65,12 @@ export function ProductVideoPlayer({ repoUrl, analysisResult, onSelectFile }: Pr
           </div>
         </div>
 
-        {/* View Mode Toggle Buttons */}
+        {/* View Mode Indicator */}
         <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#F1F5F9] border border-[#CBD5E1]">
-          <button
-            onClick={() => setActiveTab('actual_ui')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold font-mono transition-all ${
-              activeTab === 'actual_ui'
-                ? 'bg-[#2563EB] text-white shadow-sm'
-                : 'text-[#64748B] hover:text-[#0F172A]'
-            }`}
-          >
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold font-mono bg-[#2563EB] text-white shadow-sm">
             <Monitor className="w-3.5 h-3.5" />
             <span>Actual Repo UI</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('walkthrough')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold font-mono transition-all ${
-              activeTab === 'walkthrough'
-                ? 'bg-[#2563EB] text-white shadow-sm'
-                : 'text-[#64748B] hover:text-[#0F172A]'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>AI Walkthrough</span>
-          </button>
+          </div>
         </div>
       </div>
 
@@ -104,7 +85,7 @@ export function ProductVideoPlayer({ repoUrl, analysisResult, onSelectFile }: Pr
           <div className="flex items-center gap-2 min-w-0">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
             <span className="text-[10px] sm:text-xs font-mono text-[#E2E8F0] font-bold truncate">
-              {repoDisplayName} · {activeTab === 'actual_ui' ? 'Live UI' : 'AI Walkthrough'}
+              {repoDisplayName} · Live UI
             </span>
           </div>
 
