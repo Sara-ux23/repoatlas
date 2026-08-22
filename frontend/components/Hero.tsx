@@ -212,7 +212,7 @@ export const Hero: React.FC<HeroProps> = ({ onAnalyze, onSignInClick, hideRepoIn
         )}
 
         {/* ── Analyzing loader ── */}
-        <AnalyzingLoader visible={isLoading} done={analyzedSuccess} />
+        {!hideRepoInput && <AnalyzingLoader visible={isLoading} done={analyzedSuccess} />}
       </div>
 
       {/* Demo Modal — logged-out only */}
