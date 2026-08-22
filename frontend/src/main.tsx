@@ -18,11 +18,12 @@ function AppRouter() {
   const { user, loading } = useAuth();
   const pathname = window.location.pathname;
 
-  // Show a spinner while we wait for the session to resolve
+  // Show a spinner while session check is resolving
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center flex-col gap-3">
         <div className="w-8 h-8 border-4 border-[#2563EB]/30 border-t-[#2563EB] rounded-full animate-spin" />
+        <p className="text-sm font-medium text-[#6B7280]">Authenticating session...</p>
       </div>
     );
   }
@@ -40,7 +41,7 @@ function AppRouter() {
     return <DocsPage />;
   }
 
-  // Guard: unauthenticated users see AuthPage
+  // Guard: unauthenticated users accessing protected subroutes see AuthPage
   if (!user) {
     return <AuthPage />;
   }

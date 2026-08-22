@@ -41,21 +41,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load existing session on mount
+    let mounted = true;
+
+    // 1. Subscribe to auth state changes FIRST so we capture OAuth redirect & token parsing events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      console.log('[AuthContext] onAuthStateChange event:', event, newSession?.user?.email ?? 'No user');
+      if (mounted) {
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        setLoading(false);
+      }
+    });
+
+    // 2. Fetch existing session from localStorage
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      setLoading(false);
+      if (mounted) {
+        if (data.session) {
+          setSession(data.session);
+          setUser(data.session.user);
+          setLoading(false);
+        } else {
+          // If URL contains OAuth callback code or access_token hash, defer loading=false to onAuthStateChange
+          const hasAuthParams = typeof window !== 'undefined' &&
+            (window.location.search.includes('code=') || window.location.hash.includes('access_token='));
+          if (!hasAuthParams) {
+            setLoading(false);
+          }
+        }
+      }
     });
 
-    // Subscribe to auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signInWithGitHub = async () => {
