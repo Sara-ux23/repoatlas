@@ -735,26 +735,21 @@ class VideoRecorderService:
 
         logger.info(f"[recorder] Navigating to: {target_url}")
         try:
-            await page.goto(target_url, wait_until="domcontentloaded", timeout=20_000)
+            await page.goto(target_url, wait_until="domcontentloaded", timeout=12_000)
         except Exception as e:
             logger.warning(f"[recorder] Navigation warning (continuing): {e}")
 
-        await asyncio.sleep(1.5)
-        await smooth_scroll(400, steps=8)
-        await asyncio.sleep(1.0)
-        await smooth_scroll(400, steps=8)
-        await asyncio.sleep(1.0)
-        await smooth_scroll(300, steps=6)
-        await asyncio.sleep(1.2)
+        await asyncio.sleep(0.3)
+        await smooth_scroll(500, steps=3)
+        await asyncio.sleep(0.3)
 
         try:
             inp = page.locator("input[type='text'],input:not([type='submit']):not([type='checkbox']):not([type='radio']),textarea").first
             cnt = await inp.count()
-            if cnt > 0 and await inp.is_visible(timeout=1000):
+            if cnt > 0 and await inp.is_visible(timeout=500):
                 await inp.click()
-                await asyncio.sleep(0.4)
                 await inp.fill("https://github.com/example/repository")
-                await asyncio.sleep(1.2)
+                await asyncio.sleep(0.3)
         except Exception:
             pass
 
@@ -762,16 +757,14 @@ class VideoRecorderService:
             btn = page.locator("button:visible,.demo-btn:visible").first
             cnt = await btn.count()
             if cnt > 0:
-                await btn.hover()
-                await asyncio.sleep(0.6)
                 await btn.click()
-                await asyncio.sleep(1.5)
+                await asyncio.sleep(0.5)
         except Exception:
             pass
 
         await scroll_top()
-        await asyncio.sleep(1.0)
-        logger.info("[recorder] UI walkthrough complete ✓")
+        await asyncio.sleep(0.3)
+        logger.info("[recorder] Fast UI walkthrough complete ✓")
 
 
 video_recorder = VideoRecorderService()

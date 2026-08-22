@@ -62,9 +62,15 @@ export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean
 
   const handleSwitchRepo = (newUrl: string) => {
     if (!newUrl.trim()) return;
-    setRepoPath(newUrl.trim());
+    const url = newUrl.trim();
+    localStorage.setItem('repoatlas_url', url);
+    localStorage.setItem('repoatlas_path', url);
+    sessionStorage.setItem('repoatlas_url', url);
+    sessionStorage.setItem('repoatlas_path', url);
+    setRepoPath(url);
     setChangeModalOpen(false);
     setModalInput('');
+    window.location.reload();
   };
 
   const sampleRepos = [
