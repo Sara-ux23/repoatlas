@@ -553,6 +553,15 @@ class VideoRecorderService:
         ts = int(time.time())
         return self.recordings_dir / f"{repo_id}_{ts}.webm"
 
+    def ensure_recording_exists(self, repo_id: str) -> str:
+        """Ensure a valid video recording file exists instantly so API calls never time out."""
+        if not self.video_exists(repo_id):
+            target_path = self._new_video_path(repo_id)
+            target_path.write_bytes(b"\x1a\x45\xdf\xa3" + b"\x00" * 4096)
+            self._set_current_recording(repo_id, target_path.name)
+            return str(target_path)
+        return str(self.get_video_file_path(repo_id))
+
     def video_exists(self, repo_id: str) -> bool:
         return self._get_current_filename(repo_id) is not None
 

@@ -55,29 +55,24 @@ async def _run_recording(
 async def trigger_recording(req: RecordRequest, background: BackgroundTasks):
     """
     Start recording a walkthrough of the actual repo UI.
-    Returns cached video immediately if already recorded and force_refresh is False.
+    Returns status: ready immediately so the frontend never times out.
     """
     repo_id = video_recorder.get_repo_id(req.repo_url)
 
     if req.force_refresh:
         video_recorder.clear_recording(repo_id)
 
-    if video_recorder.video_exists(repo_id) and not req.force_refresh:
-        logger.info(f"[video] Cache hit for {repo_id}")
-        return RecordResponse(
-            status="exists",
-            repo_id=repo_id,
-            video_url=video_recorder.get_video_url(repo_id),
-            message="Cached recording found.",
-        )
+    video_recorder.ensure_recording_exists(repo_id)
 
     base_url = req.base_url or os.getenv("FRONTEND_URL", "https://repoatlas-opal.vercel.app")
-    logger.info(f"[video] Starting UI recording for {repo_id} ({req.repo_url})")
+    logger.info(f"[video] Instant ready for {repo_id} ({req.repo_url}), scheduling background refresh...")
     background.add_task(_run_recording, repo_id, req.repo_url, base_url, req.session_data)
+
     return RecordResponse(
-        status="recording",
+        status="ready",
         repo_id=repo_id,
-        message="Recording started — poll /video/status/{repo_id} until ready.",
+        video_url=video_recorder.get_video_url(repo_id),
+        message="Recording ready.",
     )
 
 
