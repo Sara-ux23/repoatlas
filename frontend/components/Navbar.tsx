@@ -157,20 +157,22 @@ export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-1 flex-1 justify-center">
-          {/* Repo chip + Change Repo button */}
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#2563EB]/10 border border-[#2563EB]/20 mr-2">
-            <FolderGit2 className="w-3.5 h-3.5 text-[#2563EB]" />
-            <span className="text-xs font-mono text-[#2563EB] max-w-[140px] truncate" title={repoPath || 'No repository loaded'}>
-              {repoPath ? getRepoDisplayName(repoPath) : 'Select Repo'}
-            </span>
-            <button
-              onClick={() => setChangeModalOpen(true)}
-              className="ml-1 px-2 py-0.5 rounded-full bg-[#2563EB] text-white text-[10px] font-semibold hover:bg-[#1D4ED8] transition-colors cursor-pointer"
-              title="Change repository"
-            >
-              Change Repo
-            </button>
-          </div>
+          {/* Repo chip (only shown when a repo is analyzed) */}
+          {repoPath && (
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#2563EB]/10 border border-[#2563EB]/20 mr-2">
+              <FolderGit2 className="w-3.5 h-3.5 text-[#2563EB]" />
+              <span className="text-xs font-mono text-[#2563EB] max-w-[140px] truncate" title={repoPath}>
+                {getRepoDisplayName(repoPath)}
+              </span>
+              <button
+                onClick={handleClearRepo}
+                className="ml-1 p-0.5 rounded-full hover:bg-[#2563EB]/20 text-[#2563EB] transition-colors cursor-pointer"
+                title="Clear analyzed repository"
+              >
+                <XCircle className="w-3.5 h-3.5 text-[#2563EB]" />
+              </button>
+            </div>
+          )}
 
           {user ? (
             /* ── Authenticated: flat agent pills + Reports ── */
@@ -283,15 +285,22 @@ export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="md:hidden bg-white border-b border-[#E5E5E7] px-5 py-5 space-y-3 shadow-sm">
-          {/* Change Repo button in mobile menu */}
-          <button
-            onClick={() => { setMobileMenuOpen(false); setChangeModalOpen(true); }}
-            className="w-full flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[#2563EB]/5 border border-[#2563EB]/20 text-[#2563EB] text-sm font-semibold"
-          >
-            <FolderGit2 className="w-4 h-4 shrink-0" />
-            <span className="truncate flex-1 text-left">{repoPath ? getRepoDisplayName(repoPath) : 'Select Repository'}</span>
-            <span className="text-xs bg-[#2563EB] text-white px-2 py-0.5 rounded-full shrink-0">Change</span>
-          </button>
+          {/* Repo chip in mobile menu (only shown when a repo is analyzed) */}
+          {repoPath && (
+            <div className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-[#2563EB]/5 border border-[#2563EB]/20 text-[#2563EB] text-sm font-semibold">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <FolderGit2 className="w-4 h-4 shrink-0" />
+                <span className="truncate">{getRepoDisplayName(repoPath)}</span>
+              </div>
+              <button
+                onClick={() => { setMobileMenuOpen(false); handleClearRepo(); }}
+                className="p-1 text-[#2563EB] hover:bg-[#2563EB]/10 rounded-full cursor-pointer"
+                title="Clear analyzed repository"
+              >
+                <XCircle className="w-4 h-4 text-[#2563EB]" />
+              </button>
+            </div>
+          )}
           <div className="border-t border-[#F1F5F9] pt-3 space-y-3">
           {user ? (
             <>
