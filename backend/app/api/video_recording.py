@@ -146,6 +146,36 @@ async def get_repo_ui_html(repo_url: str):
         if target_file.exists():
             try:
                 html_content = target_file.read_text(encoding="utf-8", errors="ignore")
+
+                # Inline local relative CSS stylesheets
+                import re
+                def inline_css(match):
+                    css_rel = match.group(1)
+                    css_path = (found_dir / css_rel).resolve()
+                    if css_path.exists() and str(css_path).startswith(str(found_dir.resolve())):
+                        try:
+                            css_code = css_path.read_text(encoding="utf-8", errors="ignore")
+                            return f"<style>\n{css_code}\n</style>"
+                        except Exception:
+                            pass
+                    return match.group(0)
+
+                html_content = re.sub(r'<link[^>]+href=["\']([^"\']+\.css)["\'][^>]*>', inline_css, html_content, flags=re.IGNORECASE)
+
+                # Inline local relative JS scripts
+                def inline_js(match):
+                    js_rel = match.group(1)
+                    js_path = (found_dir / js_rel).resolve()
+                    if js_path.exists() and str(js_path).startswith(str(found_dir.resolve())):
+                        try:
+                            js_code = js_path.read_text(encoding="utf-8", errors="ignore")
+                            return f"<script>\n{js_code}\n</script>"
+                        except Exception:
+                            pass
+                    return match.group(0)
+
+                html_content = re.sub(r'<script[^>]+src=["\']([^"\']+\.js)["\'][^>]*>\s*</script>', inline_js, html_content, flags=re.IGNORECASE)
+
                 if len(html_content.strip()) > 100 and "id=\"root\"" not in html_content and "id='root'" not in html_content:
                     return Response(content=html_content, media_type="text/html")
             except Exception:
