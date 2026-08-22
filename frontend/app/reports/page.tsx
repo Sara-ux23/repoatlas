@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileText, GitBranch, Clock, Search, ExternalLink, Download,
   Compass, Shield, Network, Eye, ChevronRight, CheckCircle2,
-  Sparkles, Layers, Cpu, Code2, AlertTriangle, ArrowRight, RefreshCw,
+  Sparkles, Layers, Cpu, Code2, AlertTriangle, ArrowRight, RefreshCw, Trash2,
 } from 'lucide-react';
 import { Navbar } from '../../components/Navbar';
 
@@ -844,6 +844,48 @@ export default function ReportsPage() {
     loadReportWithList(id, history);
   };
 
+  const handleDeleteReport = (e: React.MouseEvent, itemToDelete: AnalysisSummary) => {
+    e.stopPropagation();
+
+    // 1. Filter out deleted item from history state
+    const remaining = history.filter((h) => h.id !== itemToDelete.id && h.repo_url !== itemToDelete.repo_url);
+    setHistory(remaining);
+
+    // 2. If deleted item was selected, select next available report or clear detail
+    if (selectedReportId === itemToDelete.id || (reportDetail && reportDetail.repo_url === itemToDelete.repo_url)) {
+      if (remaining.length > 0) {
+        loadReportWithList(remaining[0].id, remaining);
+      } else {
+        setSelectedReportId(null);
+        setReportDetail(null);
+      }
+    }
+
+    // 3. Remove from localStorage history
+    try {
+      const rawLocal = localStorage.getItem('repoatlas_history');
+      if (rawLocal) {
+        const parsed = JSON.parse(rawLocal);
+        if (Array.isArray(parsed)) {
+          const updated = parsed.filter((item: any) => item.id !== itemToDelete.id && item.repo_url !== itemToDelete.repo_url);
+          localStorage.setItem('repoatlas_history', JSON.stringify(updated));
+        }
+      }
+    } catch { /* ignore */ }
+
+    // 4. Remove from localStorage explorer sessions
+    try {
+      const rawExplorer = localStorage.getItem('repoatlas_explorer_sessions');
+      if (rawExplorer) {
+        const parsed = JSON.parse(rawExplorer);
+        if (Array.isArray(parsed)) {
+          const updated = parsed.filter((sess: any) => sess.repo_url !== itemToDelete.repo_url);
+          localStorage.setItem('repoatlas_explorer_sessions', JSON.stringify(updated));
+        }
+      }
+    } catch { /* ignore */ }
+  };
+
 function drawCanvasRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -1395,29 +1437,42 @@ function drawVectorArchitectureGraphPDF(doc: any, startY: number, contentW: numb
               filteredHistory.map((item) => {
                 const isActive = item.id === selectedReportId;
                 return (
-                  <button
+                  <div
                     key={item.id}
                     onClick={() => loadReport(item.id)}
-                    className={`w-full text-left p-3 rounded-xl transition-all flex items-start gap-3 group ${
+                    className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between gap-2 group cursor-pointer ${
                       isActive
                         ? 'bg-[#EFF6FF] border border-[#BFDBFE] text-[#2563EB]'
                         : 'hover:bg-[#F9FAFB] text-[#374151]'
                     }`}
                   >
-                    <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${isActive ? 'bg-[#2563EB] text-white' : 'bg-[#F3F4F6] text-[#6B7280] group-hover:bg-[#E5E5E7]'}`}>
-                      <GitBranch className="w-4 h-4" />
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${isActive ? 'bg-[#2563EB] text-white' : 'bg-[#F3F4F6] text-[#6B7280] group-hover:bg-[#E5E5E7]'}`}>
+                        <GitBranch className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-xs font-bold truncate ${isActive ? 'text-[#2563EB]' : 'text-[#111114]'}`}>
+                          {repoLabel(item.repo_url)}
+                        </p>
+                        <p className="text-[10px] text-[#9CA3AF] mt-0.5 flex items-center gap-1">
+                          <Clock className="w-2.5 h-2.5" />
+                          {timeAgo(item.created_at)}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-xs font-bold truncate ${isActive ? 'text-[#2563EB]' : 'text-[#111114]'}`}>
-                        {repoLabel(item.repo_url)}
-                      </p>
-                      <p className="text-[10px] text-[#9CA3AF] mt-0.5 flex items-center gap-1">
-                        <Clock className="w-2.5 h-2.5" />
-                        {timeAgo(item.created_at)}
-                      </p>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteReport(e, item)}
+                        className="p-1 rounded-md text-[#9CA3AF] hover:text-red-600 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer"
+                        title="Delete report"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                      <ChevronRight className={`w-3.5 h-3.5 ${isActive ? 'text-[#2563EB]' : 'text-[#D1D5DB] group-hover:text-[#9CA3AF]'}`} />
                     </div>
-                    <ChevronRight className={`w-3.5 h-3.5 shrink-0 mt-1.5 ${isActive ? 'text-[#2563EB]' : 'text-[#D1D5DB] group-hover:text-[#9CA3AF]'}`} />
-                  </button>
+                  </div>
                 );
               })
             )}
