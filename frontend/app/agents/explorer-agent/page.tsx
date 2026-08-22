@@ -14,7 +14,7 @@ import {
   getChatHistory, saveChatMessage, clearChatHistory, getAnalysisHistory, AnalysisSummary,
 } from '../../../lib/api';
 
-const BASE_URL = '/api';
+const BASE_URL = (import.meta as any).env?.VITE_API_URL || 'https://repoatlas.onrender.com';
 
 /* ── Types ── */
 interface Message {
