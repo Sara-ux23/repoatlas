@@ -38,7 +38,7 @@ def save_analysis(user_id: str, result: dict[str, Any]) -> None:
             logger.warning("[DB] Supabase client is None - skipping save")
             return
         
-        db_user_id = _to_valid_uuid(user_id)
+        db_user_id = user_id if (user_id and user_id != "anonymous") else "anonymous"
         
         payload = {
             "user_id": db_user_id,
@@ -60,11 +60,11 @@ def save_analysis(user_id: str, result: dict[str, Any]) -> None:
             logger.info(f"[DB] ✅ Analysis saved successfully (user_id: {db_user_id}, repo: {payload['repo_url']})")
         except Exception as insert_err:
             err_str = str(insert_err).lower()
-            if ("foreign key constraint" in err_str or "23503" in err_str) and db_user_id is not None:
-                logger.warning(f"[DB] user_id '{db_user_id}' not present in auth.users, retrying with user_id=None")
-                payload["user_id"] = None
+            if "foreign key constraint" in err_str or "23503" in err_str:
+                logger.warning(f"[DB] user_id '{db_user_id}' not present in auth.users, retrying with user_id='anonymous'")
+                payload["user_id"] = "anonymous"
                 supabase.table("analysis_sessions").insert(payload).execute()
-                logger.info(f"[DB] ✅ Analysis saved successfully with user_id=None (repo: {payload['repo_url']})")
+                logger.info(f"[DB] ✅ Analysis saved successfully with user_id='anonymous' (repo: {payload['repo_url']})")
             else:
                 raise insert_err
         
@@ -188,9 +188,11 @@ def save_chat_message(
         supabase.table("chat_messages").insert(msg_payload).execute()
         logger.info(f"[DB] ✅ Chat message saved to chat_messages: {role} for {repo_url}")
         
-        # 2. Sync insert: chat_history table (session_id, repo_url, user_message, assistant_message)
+        # 2. Sync insert: chat_history table (user_id, role, session_id, repo_url, user_message, assistant_message)
         try:
             hist_payload = {
+                "user_id": user_id,
+                "role": role,
                 "session_id": session_id or f"session_{repo_url}",
                 "repo_url": repo_url,
                 "user_message": content if role == "user" else "",
