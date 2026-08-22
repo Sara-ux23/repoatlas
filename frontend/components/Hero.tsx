@@ -122,22 +122,13 @@ export const Hero: React.FC<HeroProps> = ({ onAnalyze, onSignInClick, hideRepoIn
               {/* CTA Buttons */}
               <motion.div custom={3} initial="hidden" animate="visible" variants={heroVariants}
                 className="flex flex-wrap items-center gap-4 pt-2">
-                {onSignInClick ? (
-                  <button
-                    onClick={onSignInClick}
-                    className="px-7 py-3.5 rounded-full font-semibold text-white bg-[#2563EB] shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-2.5 text-base">
-                    <Sparkles className="w-5 h-5 text-white" />
-                    Login Now
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                ) : (
-                  <a href="#hero-analyzer"
-                    className="px-7 py-3.5 rounded-full font-semibold text-white bg-[#2563EB] shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-2.5 text-base">
-                    <Sparkles className="w-5 h-5 text-white" />
-                    Analyze a Repo
-                    <ArrowRight className="w-4 h-4" />
-                  </a>
-                )}
+                <button
+                  onClick={onSignInClick || (() => { window.location.href = '/auth?signin=1'; })}
+                  className="px-7 py-3.5 rounded-full font-semibold text-white bg-[#2563EB] shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-2.5 text-base cursor-pointer">
+                  <Sparkles className="w-5 h-5 text-white" />
+                  Login here
+                  <ArrowRight className="w-4 h-4" />
+                </button>
                 <button onClick={() => setShowDemoModal(true)}
                   className="px-6 py-3.5 rounded-full font-semibold text-[#111114] bg-white border border-[#E5E5E7] hover:bg-[#FAFAFA] transition-all duration-300 flex items-center gap-2.5 text-base">
                   <div className="w-7 h-7 rounded-full bg-[#2563EB]/10 flex items-center justify-center">

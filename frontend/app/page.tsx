@@ -22,7 +22,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white text-[#111114] selection:bg-[#2563EB]/20 selection:text-[#2563EB] overflow-x-hidden">
       <Navbar hideAgents hideAuthButtons isLandingPage />
-      <Hero onAnalyze={handleAnalyzeRepo} />
+      <Hero onAnalyze={handleAnalyzeRepo} onSignInClick={() => { window.location.href = '/auth?signin=1'; }} />
 
       {/* Marketing sections — logged-out only. Components stay in codebase. */}
       {!user && (
