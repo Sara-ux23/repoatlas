@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Network, Sparkles, ArrowRight, Menu, X, Github, ChevronDown, Compass, Search, Brain, Palette, Bot, FolderGit2, XCircle, LogOut, User } from 'lucide-react';
+import { Network, Sparkles, ArrowRight, Menu, X, Github, ChevronDown, Compass, Search, Brain, Palette, Bot, FolderGit2, XCircle, LogOut, User, Loader2 } from 'lucide-react';
 import { useRepo } from '../lib/repoContext';
 import { useAuth } from '../lib/authContext';
 import { clearSession } from '../lib/api';
@@ -59,9 +59,11 @@ export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [changeModalOpen, setChangeModalOpen] = useState(false);
   const [modalInput, setModalInput] = useState('');
+  const [isSwitching, setIsSwitching] = useState(false);
 
   const handleSwitchRepo = (newUrl: string) => {
-    if (!newUrl.trim()) return;
+    if (!newUrl.trim() || isSwitching) return;
+    setIsSwitching(true);
     const url = newUrl.trim();
     localStorage.setItem('repoatlas_url', url);
     localStorage.setItem('repoatlas_path', url);
@@ -352,11 +354,15 @@ export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean
       {/* Change Repository Modal */}
       <AnimatePresence>
         {changeModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+          <div
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm"
+            onClick={() => setChangeModalOpen(false)}
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
               className="w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 shadow-2xl border border-[#E5E5E7] space-y-4 max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between">
@@ -364,7 +370,13 @@ export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean
                   <FolderGit2 className="w-5 h-5 text-[#2563EB]" />
                   <h3 className="text-lg font-bold text-[#111114]">Change Repository</h3>
                 </div>
-                <button onClick={() => setChangeModalOpen(false)} className="p-1 rounded-lg hover:bg-gray-100 text-gray-500">
+                <button
+                  type="button"
+                  onClick={() => setChangeModalOpen(false)}
+                  className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+                  title="Close"
+                  aria-label="Close modal"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -376,14 +388,22 @@ export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean
                   value={modalInput}
                   onChange={(e) => setModalInput(e.target.value)}
                   placeholder="e.g. facebook/react or full URL"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-sm font-mono focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
+                  disabled={isSwitching}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-sm font-mono focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 disabled:opacity-50"
                 />
                 <button
                   onClick={() => handleSwitchRepo(modalInput)}
-                  disabled={!modalInput.trim()}
-                  className="w-full py-2.5 rounded-xl bg-[#2563EB] text-white text-sm font-semibold hover:bg-[#1D4ED8] disabled:opacity-50 transition-colors"
+                  disabled={!modalInput.trim() || isSwitching}
+                  className="w-full py-2.5 rounded-xl bg-[#2563EB] text-white text-sm font-semibold hover:bg-[#1D4ED8] disabled:opacity-50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  Load Repository
+                  {isSwitching ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Loading Repository…</span>
+                    </>
+                  ) : (
+                    <span>Load Repository</span>
+                  )}
                 </button>
               </div>
 
@@ -393,8 +413,9 @@ export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean
                   {sampleRepos.map((repo) => (
                     <button
                       key={repo.url}
+                      disabled={isSwitching}
                       onClick={() => handleSwitchRepo(repo.url)}
-                      className="px-2.5 py-1 rounded-lg bg-[#F1F5F9] hover:bg-[#2563EB]/10 hover:text-[#2563EB] text-xs font-mono text-[#475569] transition-colors"
+                      className="px-2.5 py-1 rounded-lg bg-[#F1F5F9] hover:bg-[#2563EB]/10 hover:text-[#2563EB] text-xs font-mono text-[#475569] transition-colors disabled:opacity-50 cursor-pointer"
                     >
                       {repo.label}
                     </button>
