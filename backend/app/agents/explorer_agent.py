@@ -77,7 +77,7 @@ async def run_explorer(
         )
     )
 
-    res = await invoke_with_rotation(messages, model="llama-3.1-8b-instant")
+    res = await invoke_with_rotation(messages, model="openai/gpt-oss-20b")
     if "Groq API Error" in res or "Error" in res and "401" in res or "404" in res:
         # Smart codebase analysis fallback using actual repo files and AST tree
         root_path = Path(local_path)

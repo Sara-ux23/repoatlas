@@ -43,7 +43,7 @@ async def run_trace(repo_path: str, query: str, file_path=None) -> dict:
     summary = await invoke_with_rotation([
         SystemMessage(content="You are the Trace Agent for RepoAtlas AI. Analyze git history concisely into clear key-value points. Put each key-value pair on a new line (e.g. **Latest Commit**: ... \\n **Contributors**: ...). Do not smash tags together."),
         HumanMessage(content=f"{ctx['timeline_ascii']}\nContributors: {ctx['contributors']}\nBranches: {ctx['branches']}\nQUERY: {query}"),
-    ], model="llama-3.1-8b-instant")
+    ], model="openai/gpt-oss-20b")
     return {
         "timeline": ctx["timeline_ascii"],
         "commits": ctx["commits"],
@@ -142,7 +142,7 @@ async def run_repo_comparison(repo_url_1: str, repo_url_2: str) -> dict:
                 SystemMessage(content="You are a senior software architect comparing two codebases."),
                 HumanMessage(content=prompt),
             ],
-            model="llama-3.1-8b-instant"
+            model="openai/gpt-oss-20b"
         )
     except Exception as e:
         verdict = f"Side-by-side comparison generated. {repo1_stats['repo_name']} vs {repo2_stats['repo_name']}."

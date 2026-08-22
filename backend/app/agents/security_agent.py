@@ -57,7 +57,7 @@ async def run_security(repo_path: str, query: str = "full security audit") -> di
     analysis = await invoke_with_rotation([
         SystemMessage(content="You are a senior cybersecurity expert. Analyze scan results. Format: 1) Executive Summary 2) Critical Issues 3) Top Recommendations (max 5). Max 250 words."),
         HumanMessage(content=f"{report}\n\nQUERY: {query}"),
-    ], model="llama-3.1-8b-instant")
+    ], model="openai/gpt-oss-20b")
     if "Groq API Error" in analysis or "Error" in analysis:
         analysis = f"Security audit completed for **{repo_path.split('/')[-1]}**. Identified **{len(findings)}** items. Risk Rating: **{score['rating']}** ({score['score']}/100)."
     return {"risk_rating": score["rating"], "score": score, "findings": findings, "report": report, "expert_analysis": analysis}

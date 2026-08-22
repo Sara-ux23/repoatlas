@@ -28,7 +28,7 @@ def _load_keys() -> list[str]:
     return keys
 
 
-def get_llm(temperature: float = 0, model: str = "llama-3.1-8b-instant"):
+def get_llm(temperature: float = 0, model: str = "openai/gpt-oss-20b"):
     from langchain_groq import ChatGroq
 
     keys = _load_keys()
@@ -38,19 +38,23 @@ def get_llm(temperature: float = 0, model: str = "llama-3.1-8b-instant"):
 async def invoke_with_rotation(
     messages: list,
     temperature: float = 0,
-    model: str = "llama-3.1-8b-instant",
+    model: str = "openai/gpt-oss-20b",
 ) -> str:
     """
-    Invoke Groq LLM with key rotation AND automatic model fallback
-    across active, non-decommissioned Groq model identifiers.
+    Invoke Groq LLM with key rotation AND automatic model fallback.
+    Active Groq models as of August 2026 (llama-3.1-8b-instant and
+    llama-3.3-70b-versatile were deprecated on Aug 16, 2026).
     """
     from langchain_groq import ChatGroq
 
     keys = _load_keys()
 
-    # Active production Groq models: llama-3.1-8b-instant -> llama-3.3-70b-versatile
+    # Active production Groq models (updated Aug 2026):
+    # openai/gpt-oss-20b  → fast, low-latency (replaces llama-3.1-8b-instant)
+    # openai/gpt-oss-120b → powerful (replaces llama-3.3-70b-versatile)
+    # qwen/qwen3.6-27b    → alternate fallback
     models_to_try = [model]
-    for fallback in ["llama-3.1-8b-instant", "llama-3.3-70b-versatile"]:
+    for fallback in ["openai/gpt-oss-20b", "openai/gpt-oss-120b", "qwen/qwen3.6-27b"]:
         if fallback not in models_to_try:
             models_to_try.append(fallback)
 
