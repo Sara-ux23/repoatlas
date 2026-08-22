@@ -75,9 +75,8 @@ async def invoke_with_rotation(
                 err = str(e).lower()
                 logger.warning(f"[llm] Model '{target_model}' (Key #{i+1}) failed: {e}")
                 last_error = e
-                # Always continue to try the next key or next fallback model
-                continue
-
-    raise RuntimeError(
-        f"All Groq keys and fallback models failed. Last error: {last_error}"
+    logger.error(f"[llm] ❌ All Groq keys and fallback models failed. Last error: {last_error}")
+    return (
+        "⚠️ **Groq API Error**: The Groq API key configured on the server is invalid, expired, or rate-limited.\n\n"
+        "**Fix**: Please generate a free key at [console.groq.com/keys](https://console.groq.com/keys) and update `GROQ_API_KEY` in your Render Environment Variables."
     )
