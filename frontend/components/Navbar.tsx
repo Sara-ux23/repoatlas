@@ -129,12 +129,10 @@ export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean
     { name: 'Manager',  href: '/agents/manager-agent',  icon: Bot },
   ];
 
-  // Unauthenticated marketing page: dropdown as before
+  // Unauthenticated marketing page: Product, Agents dropdown, Docs
   const unauthLinks = [
     { name: 'Product', href: isLandingPage ? '#product' : '/#product' },
-    ...(!hideAgents ? [{ name: 'Agents',  href: isLandingPage ? '#how-it-works' : '/#how-it-works', isDropdown: true }] : []),
-    ...(hideAgents ? [{ name: 'How it Works', href: isLandingPage ? '#how-it-works' : '/#how-it-works' }] : []),
-    ...(hideAgents ? [{ name: 'Technologies', href: isLandingPage ? '#tech-stack' : '/#tech-stack' }] : []),
+    { name: 'Agents',  href: isLandingPage ? '#how-it-works' : '/#how-it-works', isDropdown: true },
     { name: 'Docs',    href: '/docs' },
   ];
 
