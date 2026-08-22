@@ -1,47 +1,83 @@
-# RepoAtlas AI
+# RepoAtlas AI 🔭
 
 **See your codebase. Not just search it.**
 
-RepoAtlas AI is an intelligent code analysis platform that uses AI agents to explore, trace, and visualize your GitHub repositories. Paste a GitHub URL and get architecture diagrams, dependency graphs, security analysis, and execution flow traces — all explained in plain English.
+RepoAtlas AI is an intelligent code analysis platform that uses multi-agent AI to explore, trace, and visualize your GitHub repositories. Paste a GitHub URL and instantly get architecture diagrams, dependency graphs, security analysis, and git execution flow traces — all explained in plain English.
 
-## Features
+---
 
-- 🔍 **Explorer Agent** - Deep repository structure analysis
-- 📊 **Trace Agent** - Git history and contributor insights  
-- 🔒 **Security Agent** - Vulnerability scanning and risk assessment
-- 📈 **Visualization Agent** - Interactive architecture and dependency graphs
-- 🎯 **Manager Agent** - Orchestrates all agents and generates executive summaries
+## 🌐 Live Deployments
 
-## Tech Stack
+| Service | URL |
+|---------|-----|
+| 🖥️ **Frontend (Vercel)** | [https://repoatlas-opal.vercel.app](https://repoatlas-opal.vercel.app) |
+| ⚙️ **Backend API (Render)** | [https://repoatlas.onrender.com](https://repoatlas.onrender.com) |
+| 📖 **API Docs (Swagger)** | [https://repoatlas.onrender.com/docs](https://repoatlas.onrender.com/docs) |
+| 🗄️ **Database (Supabase)** | [https://rddkgfgzrzrkwxlijmnd.supabase.co](https://rddkgfgzrzrkwxlijmnd.supabase.co) |
+
+---
+
+## ✨ Features
+
+- 🔍 **Explorer Agent** — Deep repository structure analysis with file tree & code snippets
+- 📊 **Trace Agent** — Git history timeline, contributor stats & branch analysis
+- 🔒 **Security Agent** — Vulnerability scanning, secret detection & risk assessment
+- 📈 **Visualization Agent** — Interactive architecture, dependency graphs & commit heatmaps
+- 🎯 **Manager Agent** — Orchestrates all agents in parallel and generates executive summaries
+- 💬 **Persistent Chat History** — Per-user chat threads saved to Supabase
+- 🔐 **Supabase Auth** — Google OAuth sign-in with session management
+- 🔄 **API Key Rotation** — Auto-rotates across multiple Groq API keys on failure
+
+---
+
+## 🧠 AI Models (Updated August 2026)
+
+RepoAtlas uses the latest active Groq models with automatic fallback rotation:
+
+| Priority | Model | Use |
+|----------|-------|-----|
+| 1st | `openai/gpt-oss-20b` | Fast, low-latency responses |
+| 2nd | `openai/gpt-oss-120b` | Powerful, complex analysis |
+| 3rd | `qwen/qwen3.6-27b` | Alternate fallback |
+
+> **Note:** `llama-3.1-8b-instant` and `llama-3.3-70b-versatile` were deprecated by Groq on **August 16, 2026**. RepoAtlas has been updated to use the new active model IDs.
+
+---
+
+## 🛠️ Tech Stack
 
 ### Backend
-- **FastAPI** - High-performance Python web framework
-- **LangChain** - LLM orchestration
-- **LangGraph** - Agent workflow management
-- **Groq** - Fast LLM inference
-- **GitPython** - Git repository operations
+- **FastAPI** — High-performance Python web framework
+- **LangChain + LangGraph** — LLM orchestration and agent workflows
+- **Groq** — Ultra-fast LLM inference via LPU
+- **GitPython** — Git repository operations
+- **Supabase (PostgreSQL)** — Auth, user sessions, and chat history
+- **Render** — Backend deployment & hosting
 
 ### Frontend
-- **React 18** - Modern UI library
-- **Vite** - Fast build tool
-- **TailwindCSS** - Utility-first styling
-- **Framer Motion** - Smooth animations
-- **TypeScript** - Type safety
+- **Next.js 14 (App Router)** — React framework with SSR
+- **TypeScript** — Type safety
+- **TailwindCSS** — Utility-first styling
+- **Framer Motion** — Smooth animations
+- **Supabase JS Client** — Auth & database integration
+- **Vercel** — Frontend deployment & CDN
 
-## Prerequisites
+---
+
+## ⚡ Quick Start (Local Development)
+
+### Prerequisites
 
 - **Python 3.10+**
 - **Node.js 18+**
-- **Groq API Key** - Get one at [console.groq.com](https://console.groq.com)
-- **Git** - For cloning repositories
-
-## Quick Start
+- **Groq API Key** — Free at [console.groq.com/keys](https://console.groq.com/keys)
+- **Supabase Project** — Free at [supabase.com](https://supabase.com)
 
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-repo-url>
-cd <repo-name>
+git clone https://github.com/Sara-ux23/repoatlas.git
+cd repoatlas
 ```
 
 ### 2. Backend Setup
@@ -60,218 +96,189 @@ source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
-
-# Configure environment variables
-cp .env.example .env          
-# Edit .env and add your GROQ_API_KEY
 ```
 
-**Important**: Edit `backend/.env` and add your Groq API key:
+Create `backend/.env`:
 ```env
-GROQ_API_KEY=your_groq_api_key_here
+# Groq API Keys (get free keys at console.groq.com/keys)
+GROQ_API_KEY=gsk_...
+GROQ_API_KEY_2=gsk_...    # Optional: for rotation
+GROQ_API_KEY_3=gsk_...    # Optional: for rotation
+
+# Supabase
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your_supabase_anon_key
+SUPABASE_JWT_SECRET=your_jwt_secret
+
+# GitHub Token (optional, increases API rate limits)
+GITHUB_TOKEN=ghp_...
 ```
 
 ### 3. Frontend Setup
 
 ```bash
-cd ../frontend
-
-# Install dependencies
+cd frontend
 npm install
+```
+
+Create `frontend/.env.local`:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
 ### 4. Run the Application
 
-You need two terminal windows:
-
-**Terminal 1 - Backend:**
+**Terminal 1 — Backend:**
 ```bash
 cd backend
-# Make sure venv is activated
-uvicorn app.main:app --reload --port 8000 
-
-
-```
-
-**Terminal 2 - Frontend:**
-```bash
-cd frontend
-npm run dev
-```
-
-### 5. Access the Application
-
-Open your browser and navigate to:
-```
-http://localhost:3001
-```
-
-The backend API will be running at:
-```
-http://localhost:8000
-```
-
-You can check the API docs at:
-```
-http://localhost:8000/docs
-```
-
-## Usage
-
-1. **Paste a GitHub URL** - Enter any public GitHub repository URL
-2. **Click "Analyze Repo"** - The system will clone and analyze the repository
-3. **View Results** - Explore the interactive dashboard with:
-   - Executive summary
-   - Repository structure
-   - Git history and contributors
-   - Security vulnerabilities
-   - Architecture diagrams
-   - Dependency graphs
-
-### Example Repositories to Try
-
-- `facebook/react`
-- `vercel/next.js`
-- `openai/whisper`
-- `fastapi/fastapi`
-
-## Project Structure
-
-```
-.
-├── backend/
-│   ├── app/
-│   │   ├── agents/          # AI agent implementations
-│   │   ├── api/             # FastAPI routes
-│   │   ├── core/            # Core utilities (LLM, sessions)
-│   │   ├── tools/           # Agent tools (Git, GitHub, etc.)
-│   │   └── main.py          # FastAPI application
-│   ├── requirements.txt     # Python dependencies
-│   └── .env.example         # Environment template
-├── frontend/
-│   ├── app/                 # Page components
-│   ├── components/          # Reusable UI components
-│   ├── lib/                 # Utilities and API client
-│   ├── src/                 # Entry point and styles
-│   ├── index.html           # HTML template
-│   └── package.json         # Node dependencies
-└── README.md
-```
-
-## API Endpoints
-
-### Manager Agent
-- `POST /manager/` - Analyze a repository
-- `GET /manager/session` - Get current session info
-- `DELETE /manager/session` - Clear session cache
-
-### Individual Agents
-- `POST /explorer/` - Repository structure analysis
-- `POST /trace/` - Git history and contributors
-- `POST /security/` - Security vulnerability scan
-- `POST /visualization/` - Generate architecture visualizations
-
-## Configuration
-
-### Backend Environment Variables
-
-Edit `backend/.env`:
-
-```env
-# Required - Get from console.groq.com
-GROQ_API_KEY=your_groq_api_key
-
-# Optional - For API key rotation
-GROQ_API_KEY_2=
-GROQ_API_KEY_3=
-GROQ_API_KEY_4=
-```
-
-### Frontend Configuration
-
-The frontend is pre-configured to connect to `http://localhost:8000`. To change this, edit `frontend/lib/api.ts`:
-
-```typescript
-const BASE_URL = 'http://localhost:8000';
-```
-
-## Troubleshooting
-
-### Backend won't start
-- Ensure Python 3.10+ is installed: `python --version`
-- Activate virtual environment
-- Install all dependencies: `pip install -r requirements.txt`
-- Check `.env` file has valid GROQ_API_KEY
-
-### Frontend won't start
-- Ensure Node.js 18+ is installed: `node --version`
-- Delete `node_modules` and `package-lock.json`, then run `npm install` again
-- Check no other process is using port 3000
-
-### CORS errors
-- Ensure backend is running on port 8000
-- Check backend CORS settings in `backend/app/main.py`
-
-### Analysis fails
-- Ensure the GitHub URL is valid and public
-- Check backend logs for error details
-- Verify Groq API key is valid and has quota
-- Some very large repositories may timeout
-
-## Development
-
-### Backend Development
-
-```bash
-cd backend
-source venv/bin/activate  # On Windows: venv\Scripts\activate
 uvicorn app.main:app --reload --port 8000
 ```
 
-The `--reload` flag enables hot-reloading.
-
-### Frontend Development
-
+**Terminal 2 — Frontend:**
 ```bash
 cd frontend
 npm run dev
 ```
 
-Vite provides instant hot module replacement (HMR).
-
-### Building for Production
-
-**Frontend:**
-```bash
-cd frontend
-npm run build
-```
-
-The optimized files will be in `frontend/dist/`.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-[Add your license here]
-
-## Support
-
-For issues and questions:
-- Open an issue on GitHub
-- Check existing issues for solutions
-
-## Roadmap
-
-- [ ] Support for private repositories
-- [ ] Custom agent workflows
-- [ ] Multi-language support (beyond Python/JS/TS/Go/Rust)
-- [ ] Export reports as PDF
-- [ ] Team collaboration features
-- [ ] CI/CD integration
+**Access the app at:** http://localhost:3000  
+**API Docs at:** http://localhost:8000/docs
 
 ---
 
-Built with ❤️ using AI agents and modern web technologies.
+## 🚀 Deployment
+
+### Frontend → Vercel
+
+1. Connect your GitHub repo to [vercel.com](https://vercel.com)
+2. Set root directory to `frontend`
+3. Add environment variables:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+### Backend → Render
+
+1. Connect your GitHub repo to [render.com](https://render.com)
+2. Set root directory to `backend`
+3. Build command: `pip install -r requirements.txt`
+4. Start command: `uvicorn app.main:app --host 0.0.0.0 --port 8000`
+5. Add environment variables:
+   - `GROQ_API_KEY` (and optionally `GROQ_API_KEY_2` through `_6`)
+   - `SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_JWT_SECRET`
+
+---
+
+## 🔌 API Endpoints
+
+### Manager Agent
+- `POST /manager/` — Run all agents on a repository
+- `GET /manager/session` — Get current session info
+- `DELETE /manager/session` — Clear session cache
+
+### Individual Agents
+- `POST /explorer/` — Repository structure analysis
+- `POST /trace/` — Git history and contributor timeline
+- `POST /security/` — Security vulnerability scan
+- `POST /visualization/` — Architecture + dependency charts
+
+### Chat & Sessions
+- `POST /chat/message` — Save a chat message
+- `GET /chat/history` — Load chat history for a user+repo
+- `POST /chat/thread` — Create a new chat thread
+
+---
+
+## 📁 Project Structure
+
+```
+repoatlas/
+├── backend/
+│   ├── app/
+│   │   ├── agents/               # AI agent implementations
+│   │   │   ├── explorer_agent.py
+│   │   │   ├── trace_agent.py
+│   │   │   ├── security_agent.py
+│   │   │   ├── visualization_agent.py
+│   │   │   └── manager_agent.py
+│   │   ├── api/                  # FastAPI route handlers
+│   │   ├── core/
+│   │   │   ├── llm.py            # Groq LLM + key rotation
+│   │   │   └── repo_session.py   # Repo clone session cache
+│   │   ├── db/
+│   │   │   └── crud.py           # Supabase DB operations
+│   │   ├── tools/                # Agent tools (Git, GitHub, Viz, Security)
+│   │   └── main.py               # FastAPI application entry
+│   ├── requirements.txt
+│   └── .env.example
+├── frontend/
+│   ├── app/
+│   │   ├── agents/               # Agent page components
+│   │   │   └── explorer-agent/
+│   │   ├── auth/                 # Auth page (Supabase OAuth)
+│   │   └── layout.tsx
+│   ├── components/               # Reusable UI components
+│   │   ├── Navbar.tsx
+│   │   └── ...
+│   ├── lib/
+│   │   ├── api.ts                # API client (auto-points to Render)
+│   │   ├── authContext.tsx       # Supabase auth context
+│   │   └── supabase.ts
+│   ├── src/
+│   │   └── main.tsx              # SPA router + auth state
+│   └── vercel.json               # Vercel rewrite rules
+└── README.md
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### ⚠️ Groq "Model Not Found" / "Model Decommissioned" errors
+Groq deprecates models regularly. Check [console.groq.com/docs/deprecations](https://console.groq.com/docs/deprecations) and update the model IDs in `backend/app/core/llm.py`. As of August 2026, the active models are `openai/gpt-oss-20b`, `openai/gpt-oss-120b`, and `qwen/qwen3.6-27b`.
+
+### ⚠️ Groq "Invalid API Key" errors
+Generate a fresh key at [console.groq.com/keys](https://console.groq.com/keys) and update `GROQ_API_KEY` in your Render environment variables.
+
+### ⚠️ Auth redirect loop after login
+The frontend uses SPA routing via `history.pushState`. Ensure you are running the latest version — earlier versions had a full-page reload that wiped in-memory auth state.
+
+### ⚠️ Supabase 23502 NOT NULL errors
+The `user_id` columns in `analysis_sessions` and `chat_history` tables require a non-null value. Anonymous users should pass `"anonymous"` as `user_id`.
+
+### Backend won't start
+- Ensure Python 3.10+ is installed
+- Activate virtual environment before running uvicorn
+- Verify `GROQ_API_KEY` is set in `.env`
+
+### Frontend can't reach backend
+- Check `frontend/lib/api.ts` — `BASE_URL` should point to your Render backend URL
+- Verify the `/api` rewrite in `frontend/vercel.json` is set correctly
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] Support for private repositories (via GitHub OAuth token)
+- [ ] Custom agent workflows
+- [ ] Export analysis reports as PDF
+- [ ] Team collaboration and shared dashboards
+- [ ] CI/CD integration for automated reviews
+- [ ] Support for GitLab and Bitbucket repositories
+- [ ] VS Code extension
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please submit a Pull Request or open an issue.
+
+## 📄 License
+
+MIT License — see [LICENSE](LICENSE) for details.
+
+---
+
+Built with ❤️ using AI agents, FastAPI, Next.js, Groq, and Supabase.
+
+**Live App:** [https://repoatlas-opal.vercel.app](https://repoatlas-opal.vercel.app)
