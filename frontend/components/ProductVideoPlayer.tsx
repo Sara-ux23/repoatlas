@@ -51,17 +51,17 @@ export function ProductVideoPlayer({ repoUrl, analysisResult, onSelectFile }: Pr
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mt-4 max-w-4xl mx-auto space-y-4"
+      className="mt-2 w-full space-y-3"
     >
       {/* Header strip & Tab selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#2563EB]/10 flex items-center justify-center">
-            <Monitor className="w-4 h-4 text-[#2563EB]" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-7 h-7 rounded-lg bg-[#2563EB]/10 flex items-center justify-center shrink-0">
+            <Monitor className="w-3.5 h-3.5 text-[#2563EB]" />
           </div>
-          <div>
-            <p className="text-sm font-semibold text-[#111114]">Target Repository Project UI</p>
-            <p className="text-xs text-[#6B7280] font-mono">{repoDisplayName}</p>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-[#111114] truncate">Target Repository Project UI</p>
+            <p className="text-xs text-[#6B7280] font-mono truncate">{repoDisplayName}</p>
           </div>
         </div>
 
@@ -96,14 +96,15 @@ export function ProductVideoPlayer({ repoUrl, analysisResult, onSelectFile }: Pr
       {/* Main Container Card */}
       <div
         ref={containerRef}
-        className="relative rounded-2xl border border-[#334155] bg-[#0F172A] overflow-hidden shadow-2xl aspect-video flex flex-col justify-between select-none"
+        className="relative rounded-2xl border border-[#334155] bg-[#0F172A] overflow-hidden shadow-2xl flex flex-col select-none"
+        style={{ aspectRatio: '16/9', minHeight: '200px' }}
       >
         {/* Header Bar */}
-        <div className="relative z-10 p-3.5 border-b border-slate-700/80 bg-slate-900/90 backdrop-blur-md flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs font-mono text-[#E2E8F0] font-bold truncate max-w-[280px]">
-              {repoDisplayName} · {activeTab === 'actual_ui' ? 'Live Project Interface' : 'AI Analysis Walkthrough'}
+        <div className="relative z-10 p-2.5 sm:p-3.5 border-b border-slate-700/80 bg-slate-900/90 backdrop-blur-md flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <span className="text-[10px] sm:text-xs font-mono text-[#E2E8F0] font-bold truncate">
+              {repoDisplayName} · {activeTab === 'actual_ui' ? 'Live UI' : 'AI Walkthrough'}
             </span>
           </div>
 
@@ -180,12 +181,12 @@ export function ProductVideoPlayer({ repoUrl, analysisResult, onSelectFile }: Pr
         </div>
 
         {/* Bottom Strip */}
-        <div className="relative z-10 px-4 py-2.5 bg-slate-900/90 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-400">
-          <div className="flex items-center gap-2">
-            <FolderGit2 className="w-3.5 h-3.5 text-[#38BDF8]" />
-            <span className="truncate">{repoUrl}</span>
+        <div className="relative z-10 px-3 py-2 bg-slate-900/90 border-t border-slate-800 flex items-center justify-between text-[10px] font-mono text-slate-400 gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <FolderGit2 className="w-3 h-3 text-[#38BDF8] shrink-0" />
+            <span className="truncate">{repoDisplayName}</span>
           </div>
-          <span className="text-emerald-400 font-semibold">Live Repo UI Environment</span>
+          <span className="text-emerald-400 font-semibold shrink-0">Live UI</span>
         </div>
 
         {/* Crop Agent Overlay */}

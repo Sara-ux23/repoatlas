@@ -100,8 +100,8 @@ export default function ManagerAgentPage() {
     <main className="min-h-screen bg-[#FAFAFA] text-[#111114] selection:bg-[#2563EB]/20 selection:text-[#2563EB] overflow-x-hidden flex flex-col font-sans">
       <Navbar />
 
-      {/* ── Full-Bleed Hero Section Container (unchanged) ── */}
-      <div className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-28 pb-16 flex flex-col items-center">
+      {/* ── Full-Bleed Hero Section Container ── */}
+      <div className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28 pb-16 flex flex-col items-center">
         <motion.section
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -117,8 +117,8 @@ export default function ManagerAgentPage() {
 
           {/* Unboxed Full-Screen 3D Robot Visual */}
           <div className="w-full flex items-center justify-center relative pt-2">
-            <div className="absolute w-[500px] h-[500px] rounded-full bg-[#2563EB]/15 blur-3xl pointer-events-none animate-pulse" />
-            <div className="relative z-10 w-full max-w-6xl h-[560px] sm:h-[700px] overflow-hidden bg-transparent flex items-center justify-center">
+            <div className="absolute w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] rounded-full bg-[#2563EB]/15 blur-3xl pointer-events-none animate-pulse" />
+            <div className="relative z-10 w-full max-w-6xl h-[300px] sm:h-[500px] md:h-[600px] lg:h-[700px] overflow-hidden bg-transparent flex items-center justify-center">
               {splineReady ? (
               <spline-viewer
                 url="https://prod.spline.design/a5tBEkRdYTDjQ8t0/scene.splinecode"
@@ -146,13 +146,13 @@ export default function ManagerAgentPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.1 }}
-              className="w-full max-w-4xl space-y-5 text-left"
+              className="w-full max-w-4xl space-y-4 sm:space-y-5 text-left"
             >
               {/* Repo + status header */}
-              <div className="flex items-center justify-between flex-wrap gap-3 px-1">
-                <div className="flex items-center gap-2">
-                  <Bot className="w-5 h-5 text-[#2563EB]" />
-                  <span className="font-mono text-sm text-[#374151] truncate max-w-xs">{repoUrl}</span>
+              <div className="flex items-center justify-between flex-wrap gap-2 sm:gap-3 px-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-[#2563EB] shrink-0" />
+                  <span className="font-mono text-xs sm:text-sm text-[#374151] truncate max-w-[200px] sm:max-w-xs">{repoUrl}</span>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   {result.agents_run.map((a) => {

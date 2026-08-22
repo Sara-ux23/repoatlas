@@ -890,17 +890,17 @@ export default function VisualizationAgentPage() {
       </div>
       <Navbar />
 
-      <div className="relative z-10 flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20">
+      <div className="relative z-10 flex-1 w-full max-w-7xl mx-auto px-3 sm:px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28 pb-20">
 
         {/* Page header */}
         <motion.div initial={{ opacity:0, y:-12 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.5 }}
-          className="flex items-center gap-4 mb-8"
+          className="flex flex-wrap items-center gap-3 mb-6 sm:mb-8"
         >
-          <motion.div whileHover={{ rotate:15 }} className="p-3 rounded-2xl bg-[#2563EB] text-white shadow-lg shadow-[#2563EB]/20">
-            <Palette className="w-6 h-6" />
+          <motion.div whileHover={{ rotate:15 }} className="p-2.5 sm:p-3 rounded-2xl bg-[#2563EB] text-white shadow-lg shadow-[#2563EB]/20 shrink-0">
+            <Palette className="w-5 h-5 sm:w-6 sm:h-6" />
           </motion.div>
-          <div>
-            <h1 className="text-2xl font-extrabold text-[#111114] leading-tight">Visualization Agent</h1>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#111114] leading-tight">Visualization Agent</h1>
           </div>
           <div className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#E5E5E7] bg-white shadow-sm">
             <motion.span className="w-2 h-2 rounded-full bg-[#4ADE80]"
@@ -949,7 +949,7 @@ export default function VisualizationAgentPage() {
                 animate={{ opacity:1, y:0, scale:1 }}
                 exit={{ opacity:0, y:-8, scale:0.98 }}
                 transition={{ duration:0.3, ease:[0.16,1,0.3,1] }}
-                className="bg-white rounded-2xl border border-[#E5E5E7] shadow-sm p-6 min-h-[400px]"
+                className="bg-white rounded-2xl border border-[#E5E5E7] shadow-sm p-3 sm:p-6 min-h-[300px] sm:min-h-[400px]"
               >
                 {activeTab==='video' ? (
                   <ProductVideoPlayer repoUrl={activeRepo ?? ''} analysisResult={analysisResult} />

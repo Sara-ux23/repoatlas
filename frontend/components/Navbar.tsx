@@ -280,7 +280,17 @@ export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="md:hidden bg-white border-b border-[#E5E5E7] px-6 py-6 space-y-4 shadow-sm">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="md:hidden bg-white border-b border-[#E5E5E7] px-5 py-5 space-y-3 shadow-sm">
+          {/* Change Repo button in mobile menu */}
+          <button
+            onClick={() => { setMobileMenuOpen(false); setChangeModalOpen(true); }}
+            className="w-full flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[#2563EB]/5 border border-[#2563EB]/20 text-[#2563EB] text-sm font-semibold"
+          >
+            <FolderGit2 className="w-4 h-4 shrink-0" />
+            <span className="truncate flex-1 text-left">{repoPath ? getRepoDisplayName(repoPath) : 'Select Repository'}</span>
+            <span className="text-xs bg-[#2563EB] text-white px-2 py-0.5 rounded-full shrink-0">Change</span>
+          </button>
+          <div className="border-t border-[#F1F5F9] pt-3 space-y-3">
           {user ? (
             <>
               {agentNavItems.map((agent) => {
@@ -308,7 +318,8 @@ export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean
               ))}
             </>
           )}
-          <div className="pt-4 border-t border-[#E5E5E7] flex flex-col gap-3">
+          </div>
+          <div className="pt-3 border-t border-[#E5E5E7] flex flex-col gap-3">
             {user ? (
               <>
                 <div className="text-center text-sm text-[#374151]">{user.email}</div>
@@ -341,12 +352,12 @@ export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean
       {/* Change Repository Modal */}
       <AnimatePresence>
         {changeModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-[#E5E5E7] space-y-4"
+              className="w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 shadow-2xl border border-[#E5E5E7] space-y-4 max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">

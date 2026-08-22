@@ -397,19 +397,19 @@ export default function TraceAgentPage() {
     <main className="min-h-screen bg-[#F8FAFC] text-[#111114] selection:bg-[#2563EB]/20 overflow-x-hidden flex flex-col relative">
       <Navbar />
 
-      <div className="relative z-10 flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20">
+      <div className="relative z-10 flex-1 w-full max-w-6xl mx-auto px-3 sm:px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28 pb-20">
 
         {/* ── Page header ── */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-4 mb-4"
+          className="flex flex-wrap items-center gap-3 mb-4"
         >
-          <div className="p-3 rounded-2xl bg-[#2563EB] text-white shadow-lg shadow-[#2563EB]/20">
-            <Search className="w-6 h-6" />
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-[#2563EB] text-white shadow-lg shadow-[#2563EB]/20 shrink-0">
+            <Search className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
-          <div>
-            <h1 className="text-2xl font-extrabold text-[#111114] leading-tight">Trace Agent</h1>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#111114] leading-tight">Trace Agent</h1>
           </div>
 
           {/* Status badge */}

@@ -243,14 +243,25 @@ function ChatSidebar({
   return (
     <AnimatePresence>
       {open && (
-        <motion.aside
-          initial={{ width: 0, opacity: 0 }}
-          animate={{ width: 280, opacity: 1 }}
-          exit={{ width: 0, opacity: 0 }}
-          transition={{ duration: 0.22, ease: 'easeInOut' }}
-          className="shrink-0 border-r border-[#E5E5E7] bg-[#FAFAFA] flex flex-col overflow-hidden"
-          style={{ minWidth: 0 }}
-        >
+        <>
+          {/* Mobile backdrop overlay */}
+          <motion.div
+            key="sidebar-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+            onClick={onClose}
+          />
+          <motion.aside
+            key="sidebar"
+            initial={{ width: 0, opacity: 0, x: -20 }}
+            animate={{ width: 280, opacity: 1, x: 0 }}
+            exit={{ width: 0, opacity: 0, x: -20 }}
+            transition={{ duration: 0.22, ease: 'easeInOut' }}
+            className="fixed md:relative top-0 bottom-0 left-0 z-50 md:z-auto shrink-0 border-r border-[#E5E5E7] bg-[#FAFAFA] flex flex-col overflow-hidden"
+            style={{ minWidth: 0, height: '100dvh', maxWidth: '280px' }}
+          >
           {/* Sidebar header */}
           <div className="flex items-center justify-between px-4 py-3.5 border-b border-[#E5E5E7] bg-white shrink-0">
             <div className="flex items-center gap-2">
@@ -329,6 +340,7 @@ function ChatSidebar({
             )}
           </div>
         </motion.aside>
+        </>
       )}
     </AnimatePresence>
   );
@@ -343,7 +355,7 @@ export default function ExplorerAgentPage() {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [repoUrl, setRepoUrl] = useState('');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // default closed on mobile
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -665,10 +677,10 @@ export default function ExplorerAgentPage() {
   };
 
   return (
-    <main className="h-screen bg-[#FAFAFA] text-[#111114] selection:bg-[#2563EB]/20 overflow-hidden flex flex-col">
+    <main className="h-[100dvh] bg-[#FAFAFA] text-[#111114] selection:bg-[#2563EB]/20 overflow-hidden flex flex-col">
       <Navbar />
 
-      <div className="flex-1 flex pt-16 w-full overflow-hidden">
+      <div className="flex-1 flex pt-16 w-full overflow-hidden relative">
 
         {/* ── ChatGPT-Style Sidebar ── */}
         <ChatSidebar
@@ -688,42 +700,42 @@ export default function ExplorerAgentPage() {
           className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white"
         >
           {/* Card header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E7] bg-white shrink-0 shadow-xs">
-            <div className="flex items-center gap-3.5">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-[#E5E5E7] bg-white shrink-0 shadow-xs">
+            <div className="flex items-center gap-2 sm:gap-3.5 min-w-0">
               {/* Sidebar toggle */}
               <button
                 onClick={() => setSidebarOpen((o) => !o)}
-                className="p-2 rounded-lg hover:bg-[#F3F4F6] text-[#6B7280] hover:text-[#111114] transition-colors"
+                className="p-2 rounded-lg hover:bg-[#F3F4F6] text-[#6B7280] hover:text-[#111114] transition-colors shrink-0"
                 title={sidebarOpen ? 'Hide history' : 'Show history'}
               >
                 <PanelLeft className="w-5 h-5" />
               </button>
-              <div className="p-2.5 rounded-xl bg-[#2563EB] text-white shadow-sm">
-                <Compass className="w-5 h-5" />
+              <div className="p-2 rounded-xl bg-[#2563EB] text-white shadow-sm shrink-0">
+                <Compass className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-[#111114] leading-none">Explorer Agent</h1>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl font-bold text-[#111114] leading-none">Explorer Agent</h1>
               </div>
               {repoUrl && (
-                <span className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-[#2563EB] text-xs font-mono font-medium">
-                  <GitBranch className="w-3.5 h-3.5" />
-                  {repoLabel(repoUrl)}
+                <span className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-[#2563EB] text-xs font-mono font-medium truncate max-w-[120px] lg:max-w-none">
+                  <GitBranch className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">{repoLabel(repoUrl)}</span>
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
 
               {repoUrl && (
                 <button
                   onClick={handleClearHistory}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-[#E5E5E7] hover:bg-[#FEF2F2] hover:border-[#FCA5A5] text-[#EF4444] text-xs font-medium transition-colors cursor-pointer"
+                  className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg border border-[#E5E5E7] hover:bg-[#FEF2F2] hover:border-[#FCA5A5] text-[#EF4444] text-xs font-medium transition-colors cursor-pointer"
                   title="Clear chat thread"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                  Clear Thread
+                  <span className="hidden sm:inline">Clear Thread</span>
                 </button>
               )}
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#E5E5E7] bg-[#FAFAFA]">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#E5E5E7] bg-[#FAFAFA]">
                 <span className="w-2 h-2 rounded-full bg-[#4ADE80] animate-pulse" />
                 <span className="text-[11px] font-mono text-[#6B7280] font-medium">Active Stream</span>
               </div>
@@ -747,10 +759,10 @@ export default function ExplorerAgentPage() {
                 </div>
               </div>
 
-              {/* Input Area (Expanded & Larger) */}
-              <div className="shrink-0 px-4 md:px-8 py-4 border-t border-[#E5E5E7] bg-white">
+              {/* Input Area */}
+              <div className="shrink-0 px-3 sm:px-4 md:px-8 py-3 sm:py-4 border-t border-[#E5E5E7] bg-white">
                 <div className="max-w-4xl mx-auto">
-                  <div className="flex items-end gap-3 p-3 rounded-2xl border border-[#E5E5E7] bg-[#FAFAFA] focus-within:border-[#2563EB] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#2563EB]/10 transition-all shadow-md">
+                  <div className="flex items-end gap-2 sm:gap-3 p-2 sm:p-3 rounded-2xl border border-[#E5E5E7] bg-[#FAFAFA] focus-within:border-[#2563EB] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#2563EB]/10 transition-all shadow-md">
                     <textarea
                       ref={textareaRef}
                       rows={1}
@@ -763,25 +775,26 @@ export default function ExplorerAgentPage() {
                       onKeyDown={handleKeyDown}
                       placeholder="Ask the Explorer Agent about this repo…"
                       disabled={isTyping}
-                      className="flex-1 resize-none bg-transparent text-[15px] text-[#111114] placeholder-[#9CA3AF] px-3 py-2 focus:outline-none leading-relaxed disabled:opacity-50"
-                      style={{ minHeight: '44px', maxHeight: '160px' }}
+                      className="flex-1 resize-none bg-transparent text-[14px] sm:text-[15px] text-[#111114] placeholder-[#9CA3AF] px-2 sm:px-3 py-2 focus:outline-none leading-relaxed disabled:opacity-50"
+                      style={{ minHeight: '40px', maxHeight: '160px' }}
                     />
                     <motion.button
                       onClick={handleSend}
                       disabled={!inputValue.trim() || isTyping}
                       whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                      className="shrink-0 w-11 h-11 rounded-xl bg-[#2563EB] text-white flex items-center justify-center shadow-md disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#1D4ED8] transition-colors"
+                      className="shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#2563EB] text-white flex items-center justify-center shadow-md disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#1D4ED8] transition-colors"
                     >
-                      {isTyping ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                      {isTyping ? <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" /> : <Send className="w-4 h-4 sm:w-5 sm:h-5" />}
                     </motion.button>
                   </div>
-                  <div className="flex items-center justify-between mt-2.5 px-2">
-                    <span className="text-[11px] font-mono text-[#9CA3AF] flex items-center gap-1.5">
+                  <div className="flex items-center justify-between mt-2 px-1">
+                    <span className="text-[10px] sm:text-[11px] font-mono text-[#9CA3AF] flex items-center gap-1.5">
                       <CornerDownLeft className="w-3 h-3" />
-                      Enter to send · Shift+Enter for new line
+                      <span className="hidden sm:inline">Enter to send · Shift+Enter for new line</span>
+                      <span className="sm:hidden">Enter to send</span>
                     </span>
-                    <span className="text-[11px] font-mono text-[#9CA3AF]">
-                      Latency <span className="text-[#2563EB] font-semibold">&lt; 14ms</span>
+                    <span className="text-[10px] sm:text-[11px] font-mono text-[#9CA3AF]">
+                      <span className="hidden sm:inline">Latency </span><span className="text-[#2563EB] font-semibold">&lt; 14ms</span>
                     </span>
                   </div>
                 </div>

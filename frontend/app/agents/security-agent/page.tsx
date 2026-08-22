@@ -450,23 +450,23 @@ export default function SecurityAgentPage() {
       <Navbar />
       <RadarBackground />
 
-      <div className="flex-1 flex items-center justify-center pt-32 pb-24 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full relative z-10">
+      <div className="flex-1 flex items-start sm:items-center justify-center pt-20 sm:pt-32 pb-16 sm:pb-24 px-3 sm:px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="p-8 rounded-2xl bg-white border border-[#E5E5E7] shadow-lg space-y-6 relative overflow-hidden w-full"
+          className="p-4 sm:p-8 rounded-2xl bg-white border border-[#E5E5E7] shadow-lg space-y-5 sm:space-y-6 relative overflow-hidden w-full"
         >
           <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
             <Brain className="w-48 h-48 text-[#2563EB]" />
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-[#2563EB] text-white shadow-lg">
-              <Brain className="w-6 h-6" />
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="p-2.5 sm:p-3 rounded-xl bg-[#2563EB] text-white shadow-lg shrink-0">
+              <Brain className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-[#111114]">Security Agent</h3>
+              <h3 className="text-xl sm:text-2xl font-bold text-[#111114]">Security Agent</h3>
               <span className="text-xs font-mono text-[#9CA3AF] block font-semibold mt-0.5">Vulnerability Scanner</span>
             </div>
           </div>
