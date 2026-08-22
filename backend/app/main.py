@@ -32,6 +32,7 @@ app.add_middleware(
         "http://localhost:3001",
         "http://127.0.0.1:3001",
     ],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -53,6 +54,12 @@ app.include_router(history_router)
 app.include_router(chat_router)
 
 
+@app.get("/")
+def root():
+    return {"status": "ok", "service": "repoatlas backend"}
+
+
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "healthy"}
+
