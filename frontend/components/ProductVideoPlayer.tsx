@@ -14,8 +14,8 @@ interface ProductVideoPlayerProps {
 
 type RecordingState = 'idle' | 'triggering' | 'recording' | 'ready' | 'error';
 
-const POLL_INTERVAL_MS = 4000;
-const MAX_POLLS = 45; // ~3 min timeout
+const POLL_INTERVAL_MS = 1500;
+const MAX_POLLS = 10; // 15s max timeout
 
 export function ProductVideoPlayer({ repoUrl, analysisResult, onSelectFile }: ProductVideoPlayerProps) {
   const [state, setState] = useState<RecordingState>('idle');
