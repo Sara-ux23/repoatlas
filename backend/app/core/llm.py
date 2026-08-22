@@ -28,7 +28,7 @@ def _load_keys() -> list[str]:
     return keys
 
 
-def get_llm(temperature: float = 0, model: str = "openai/gpt-oss-20b"):
+def get_llm(temperature: float = 0, model: str = "llama-3.3-70b-versatile"):
     from langchain_groq import ChatGroq
 
     keys = _load_keys()
@@ -38,7 +38,7 @@ def get_llm(temperature: float = 0, model: str = "openai/gpt-oss-20b"):
 async def invoke_with_rotation(
     messages: list,
     temperature: float = 0,
-    model: str = "openai/gpt-oss-20b",
+    model: str = "llama-3.3-70b-versatile",
 ) -> str:
     """
     Invoke Groq LLM with key rotation AND automatic model fallback
@@ -48,14 +48,11 @@ async def invoke_with_rotation(
 
     keys = _load_keys()
 
-    # Fallback cascade: Primary model -> openai/gpt-oss-20b -> openai/gpt-oss-120b -> qwen/qwen3.6-27b
+    # Fallback cascade: Primary model -> llama-3.3-70b-versatile -> llama-3.1-8b-instant -> llama3-70b-8192 -> mixtral-8x7b-32768
     models_to_try = [model]
-    if "openai/gpt-oss-20b" not in models_to_try:
-        models_to_try.append("openai/gpt-oss-20b")
-    if "openai/gpt-oss-120b" not in models_to_try:
-        models_to_try.append("openai/gpt-oss-120b")
-    if "qwen/qwen3.6-27b" not in models_to_try:
-        models_to_try.append("qwen/qwen3.6-27b")
+    for fallback in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama3-70b-8192", "mixtral-8x7b-32768"]:
+        if fallback not in models_to_try:
+            models_to_try.append(fallback)
 
     last_error = None
     for target_model in models_to_try:
