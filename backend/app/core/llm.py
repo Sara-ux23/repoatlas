@@ -48,9 +48,9 @@ async def invoke_with_rotation(
 
     keys = _load_keys()
 
-    # Fallback cascade across active Groq models: llama-3.1-8b-instant -> llama-3.3-70b-versatile -> llama-3.2-11b-vision-preview -> mixtral-8x7b-32768
+    # Fallback cascade across active Groq models: llama-3.1-8b-instant -> llama-3.3-70b-versatile -> llama-3.2-11b-vision-preview -> llama-3.2-3b-preview -> llama-3.2-1b-preview
     models_to_try = [model]
-    for fallback in ["llama-3.1-8b-instant", "llama-3.3-70b-versatile", "llama-3.2-11b-vision-preview", "mixtral-8x7b-32768"]:
+    for fallback in ["llama-3.1-8b-instant", "llama-3.3-70b-versatile", "llama-3.2-11b-vision-preview", "llama-3.2-3b-preview", "llama-3.2-1b-preview"]:
         if fallback not in models_to_try:
             models_to_try.append(fallback)
 
