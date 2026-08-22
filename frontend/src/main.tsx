@@ -37,10 +37,9 @@ function AppRouter() {
     return <DocsPage />;
   }
 
-  // Guard: unauthenticated users go to /auth
+  // Guard: unauthenticated users see AuthPage
   if (!user) {
-    window.location.replace('/auth');
-    return null;
+    return <AuthPage />;
   }
   if (pathname.includes('/reports')) {
     return <ReportsPage />;

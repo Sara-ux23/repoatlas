@@ -48,6 +48,8 @@ function SignInModal({ onClose }: { onClose: () => void }) {
       setError(err);
     } else if (mode === 'signup') {
       setSuccess('Account created! Check your email to confirm your address.');
+    } else {
+      onClose();
     }
   };
 
@@ -194,10 +196,10 @@ export default function AuthPage() {
   const { user, loading } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
 
-  // Redirect if already signed in
+  // Close modal if already signed in
   useEffect(() => {
     if (!loading && user) {
-      window.location.href = '/';
+      setModalOpen(false);
     }
   }, [user, loading]);
 
