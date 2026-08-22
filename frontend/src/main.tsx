@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './index.css'
 import Home from '../app/page'
@@ -18,21 +18,11 @@ function AppRouter() {
   const { user, loading } = useAuth();
   const pathname = window.location.pathname;
 
-  // Clean URL hash if returning from OAuth redirect with access_token
-  useEffect(() => {
-    if (user && typeof window !== 'undefined' && window.location.hash.includes('access_token=')) {
-      window.history.replaceState(null, '', window.location.pathname + window.location.search);
-    }
-  }, [user]);
-
-  console.log('[RouteGuard] render:', { pathname, loading, isAuthenticated: !!user, userEmail: user?.email });
-
-  // Show a spinner ONLY while session check is in progress
+  // Show a spinner while we wait for the session to resolve
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center flex-col gap-3">
+      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-[#2563EB]/30 border-t-[#2563EB] rounded-full animate-spin" />
-        <p className="text-sm font-medium text-[#6B7280]">Authenticating session...</p>
       </div>
     );
   }
@@ -47,11 +37,11 @@ function AppRouter() {
     return <DocsPage />;
   }
 
-  // Protected agent / report routes require authentication
-  if (!user && (pathname.includes('/reports') || pathname.includes('/agents/'))) {
-    return <AuthPage />;
+  // Guard: unauthenticated users go to /auth
+  if (!user) {
+    window.location.replace('/auth');
+    return null;
   }
-
   if (pathname.includes('/reports')) {
     return <ReportsPage />;
   }

@@ -41,70 +41,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let mounted = true;
-
     // Load existing session on mount
-    supabase.auth.getSession().then(({ data, error }) => {
-      console.log('[AuthContext] getSession:', {
-        hasSession: !!data.session,
-        userEmail: data.session?.user?.email ?? null,
-        error: error?.message ?? null,
-      });
-      if (mounted) {
-        if (data.session) {
-          setSession(data.session);
-          setUser(data.session.user);
-          setLoading(false);
-        } else {
-          // If URL contains OAuth code or access_token hash, defer loading=false to onAuthStateChange
-          const hasAuthParams = typeof window !== 'undefined' &&
-            (window.location.search.includes('code=') || window.location.hash.includes('access_token='));
-          if (!hasAuthParams) {
-            setLoading(false);
-          }
-        }
-      }
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setUser(data.session?.user ?? null);
+      setLoading(false);
     });
 
-    // Subscribe to auth state changes (handles PKCE code exchange & OAuth redirects)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
-      console.log('[AuthContext] onAuthStateChange event:', event, {
-        hasSession: !!newSession,
-        userEmail: newSession?.user?.email ?? null,
-      });
-      if (mounted) {
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-        setLoading(false);
-      }
+    // Subscribe to auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+      setUser(newSession?.user ?? null);
+      setLoading(false);
     });
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
-
-  const getRedirectUrl = () => {
-    const envUrl = (import.meta as any).env?.VITE_SITE_URL || (import.meta as any).env?.VITE_PUBLIC_SITE_URL;
-    if (envUrl) return envUrl;
-    if (typeof window !== 'undefined' && window.location?.origin) {
-      return window.location.origin;
-    }
-    return 'https://repoatlas-opal.vercel.app';
-  };
 
   const signInWithGitHub = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'github',
-      options: { redirectTo: getRedirectUrl() },
+      options: { redirectTo: window.location.origin },
     });
   };
 
   const signInWithGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: getRedirectUrl() },
+      options: { redirectTo: window.location.origin },
     });
   };
 
@@ -117,16 +81,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: getRedirectUrl() },
+      options: { emailRedirectTo: window.location.origin },
     });
     return error?.message ?? null;
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    if (typeof window !== 'undefined') {
-      window.location.replace('/auth');
-    }
+    window.location.replace('/auth');
   };
 
   return (
