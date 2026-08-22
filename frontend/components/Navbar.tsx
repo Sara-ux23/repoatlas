@@ -45,6 +45,12 @@ function UnauthAgentsDropdown({ href, agentItems }: {
 }
 
 /* ── Main Navbar ─────────────────────────────────────────────────────── */
+// SPA navigate helper — updates URL and fires popstate so AppRouter re-renders
+function navigate(href: string) {
+  history.pushState(null, '', href);
+  window.dispatchEvent(new PopStateEvent('popstate'));
+}
+
 export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean; hideAuthButtons?: boolean; isLandingPage?: boolean }> = ({ onSignInClick, hideAgents, hideAuthButtons, isLandingPage = false }) => {
   const { repoPath, clearRepo } = useRepo();
   const { user, loading: authLoading, signOut } = useAuth();
@@ -147,23 +153,23 @@ export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean
                 const Icon = agent.icon;
                 const isActive = pathname === agent.href;
                 return (
-                  <a key={agent.name} href={agent.href}
+                  <button key={agent.name} onClick={() => navigate(agent.href)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                       isActive ? 'bg-[#2563EB]/10 text-[#2563EB]' : 'text-[#6B7280] hover:text-[#111114] hover:bg-[#F4F6FA]'
                     }`}
                   >
                     <Icon className="w-3.5 h-3.5" />
                     {agent.name}
-                  </a>
+                  </button>
                 );
               })}
-              <a href="/reports"
+              <button onClick={() => navigate('/reports')}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                   pathname === '/reports' ? 'bg-[#2563EB]/10 text-[#2563EB]' : 'text-[#6B7280] hover:text-[#111114] hover:bg-[#F4F6FA]'
                 }`}
               >
                 Reports
-              </a>
+              </button>
             </>
           ) : (
             /* ── Unauthenticated: marketing links with agents dropdown ── */

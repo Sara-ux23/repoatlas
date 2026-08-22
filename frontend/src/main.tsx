@@ -16,7 +16,23 @@ import { AuthProvider, useAuth } from '../lib/authContext'
 
 function AppRouter() {
   const { user, loading } = useAuth();
-  const pathname = window.location.pathname;
+  const [pathname, setPathname] = React.useState(window.location.pathname);
+
+  // Listen for browser back/forward and in-app pushState navigation
+  React.useEffect(() => {
+    const onLocationChange = () => setPathname(window.location.pathname);
+    window.addEventListener('popstate', onLocationChange);
+    // Also patch pushState so <a onClick={navigate}> style links update state
+    const origPush = history.pushState.bind(history);
+    history.pushState = (...args) => {
+      origPush(...args);
+      onLocationChange();
+    };
+    return () => {
+      window.removeEventListener('popstate', onLocationChange);
+      history.pushState = origPush;
+    };
+  }, []);
 
   // Show a spinner while session check is resolving
   if (loading) {
