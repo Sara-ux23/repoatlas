@@ -98,7 +98,7 @@ async def run_manager(
                         SystemMessage(content="You are the Manager Agent for RepoAtlas AI. Produce a concise executive summary. Format: 1) Overview 2) Key Findings 3) Priority Actions. Max 200 words."),
                         HumanMessage(content="\n---\n".join(summary_parts) + f"\n\nQUERY: {query}"),
                     ],
-                    model="llama-3.3-70b-versatile"
+                    model="llama3-70b-8192"
                 ),
                 timeout=3.0
             )

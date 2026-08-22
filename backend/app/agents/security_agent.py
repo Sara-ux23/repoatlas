@@ -57,5 +57,5 @@ async def run_security(repo_path: str, query: str = "full security audit") -> di
     analysis = await invoke_with_rotation([
         SystemMessage(content="You are a senior cybersecurity expert. Analyze scan results. Format: 1) Executive Summary 2) Critical Issues 3) Top Recommendations (max 5). Max 250 words."),
         HumanMessage(content=f"{report}\n\nQUERY: {query}"),
-    ], model="llama-3.3-70b-versatile")
+    ], model="llama3-70b-8192")
     return {"risk_rating": score["rating"], "score": score, "findings": findings, "report": report, "expert_analysis": analysis}

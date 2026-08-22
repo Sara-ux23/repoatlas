@@ -28,7 +28,7 @@ def _load_keys() -> list[str]:
     return keys
 
 
-def get_llm(temperature: float = 0, model: str = "llama-3.3-70b-versatile"):
+def get_llm(temperature: float = 0, model: str = "llama3-70b-8192"):
     from langchain_groq import ChatGroq
 
     keys = _load_keys()
@@ -38,19 +38,19 @@ def get_llm(temperature: float = 0, model: str = "llama-3.3-70b-versatile"):
 async def invoke_with_rotation(
     messages: list,
     temperature: float = 0,
-    model: str = "llama-3.3-70b-versatile",
+    model: str = "llama3-70b-8192",
 ) -> str:
     """
     Invoke Groq LLM with key rotation AND automatic model fallback
-    if 413 (context too large), 429 (rate limit), or TPM limits are hit.
+    if 413 (context too large), 429 (rate limit), 404 (model not found), or 401 errors occur.
     """
     from langchain_groq import ChatGroq
 
     keys = _load_keys()
 
-    # Fallback cascade: Primary model -> llama-3.3-70b-versatile -> llama-3.1-8b-instant -> llama3-70b-8192 -> mixtral-8x7b-32768
+    # Fallback cascade: Primary model -> llama3-70b-8192 -> llama-3.1-8b-instant -> llama3-8b-8192 -> mixtral-8x7b-32768 -> gemma2-9b-it
     models_to_try = [model]
-    for fallback in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama3-70b-8192", "mixtral-8x7b-32768"]:
+    for fallback in ["llama3-70b-8192", "llama-3.1-8b-instant", "llama3-8b-8192", "mixtral-8x7b-32768", "gemma2-9b-it"]:
         if fallback not in models_to_try:
             models_to_try.append(fallback)
 
@@ -76,6 +76,8 @@ async def invoke_with_rotation(
                 if any(
                     x in err
                     for x in [
+                        "404",
+                        "401",
                         "413",
                         "429",
                         "tpm",
@@ -86,6 +88,9 @@ async def invoke_with_rotation(
                         "connection",
                         "timeout",
                         "403",
+                        "not_found",
+                        "does not exist",
+                        "invalid",
                     ]
                 ):
                     logger.warning(
