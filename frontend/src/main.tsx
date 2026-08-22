@@ -37,14 +37,19 @@ function AppRouter() {
     );
   }
 
-  // Always allow the /auth route or unauthenticated users to see AuthPage
-  if (pathname === '/auth' || pathname.startsWith('/auth') || !user) {
+  // Always allow the /auth route
+  if (pathname === '/auth' || pathname.startsWith('/auth')) {
     return <AuthPage />;
   }
 
   // Docs is publicly accessible (no login required)
   if (pathname === '/docs' || pathname.startsWith('/docs')) {
     return <DocsPage />;
+  }
+
+  // Protected agent / report routes require authentication
+  if (!user && (pathname.includes('/reports') || pathname.includes('/agents/'))) {
+    return <AuthPage />;
   }
 
   if (pathname.includes('/reports')) {

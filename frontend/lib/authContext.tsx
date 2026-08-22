@@ -41,6 +41,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     // Load existing session on mount
     supabase.auth.getSession().then(({ data, error }) => {
       console.log('[AuthContext] getSession:', {
@@ -48,23 +50,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userEmail: data.session?.user?.email ?? null,
         error: error?.message ?? null,
       });
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      setLoading(false);
+      if (mounted) {
+        if (data.session) {
+          setSession(data.session);
+          setUser(data.session.user);
+          setLoading(false);
+        } else {
+          // If URL contains OAuth code or access_token hash, defer loading=false to onAuthStateChange
+          const hasAuthParams = typeof window !== 'undefined' &&
+            (window.location.search.includes('code=') || window.location.hash.includes('access_token='));
+          if (!hasAuthParams) {
+            setLoading(false);
+          }
+        }
+      }
     });
 
-    // Subscribe to auth state changes
+    // Subscribe to auth state changes (handles PKCE code exchange & OAuth redirects)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
       console.log('[AuthContext] onAuthStateChange event:', event, {
         hasSession: !!newSession,
         userEmail: newSession?.user?.email ?? null,
       });
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
-      setLoading(false);
+      if (mounted) {
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        setLoading(false);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const getRedirectUrl = () => {
