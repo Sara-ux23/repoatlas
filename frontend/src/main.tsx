@@ -17,16 +17,18 @@ import { AuthProvider, useAuth } from '../lib/authContext'
 function AppRouter() {
   const { user, loading } = useAuth();
   const pathname = window.location.pathname;
-  const hash = typeof window !== 'undefined' ? window.location.hash : '';
-  const search = typeof window !== 'undefined' ? window.location.search : '';
 
-  // Check if we are currently handling an OAuth redirect hash or auth code
-  const isProcessingOAuth = hash.includes('access_token=') || hash.includes('type=recovery') || search.includes('code=');
+  // Clean URL hash if returning from OAuth redirect with access_token
+  useEffect(() => {
+    if (user && typeof window !== 'undefined' && window.location.hash.includes('access_token=')) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  }, [user]);
 
-  console.log('[RouteGuard] render:', { pathname, loading, isAuthenticated: !!user, userEmail: user?.email, isProcessingOAuth });
+  console.log('[RouteGuard] render:', { pathname, loading, isAuthenticated: !!user, userEmail: user?.email });
 
-  // Show a spinner while session is loading or while parsing OAuth redirect params
-  if (loading || (isProcessingOAuth && !user)) {
+  // Show a spinner ONLY while session check is in progress
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center flex-col gap-3">
         <div className="w-8 h-8 border-4 border-[#2563EB]/30 border-t-[#2563EB] rounded-full animate-spin" />
@@ -35,8 +37,8 @@ function AppRouter() {
     );
   }
 
-  // Always allow the /auth route
-  if (pathname === '/auth' || pathname.startsWith('/auth')) {
+  // Always allow the /auth route or unauthenticated users to see AuthPage
+  if (pathname === '/auth' || pathname.startsWith('/auth') || !user) {
     return <AuthPage />;
   }
 
@@ -45,10 +47,6 @@ function AppRouter() {
     return <DocsPage />;
   }
 
-  // Guard: unauthenticated users see AuthPage without wiping URL hash
-  if (!user) {
-    return <AuthPage />;
-  }
   if (pathname.includes('/reports')) {
     return <ReportsPage />;
   }
