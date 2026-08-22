@@ -51,7 +51,7 @@ function navigate(href: string) {
   window.dispatchEvent(new PopStateEvent('popstate'));
 }
 
-export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean; hideAuthButtons?: boolean; isLandingPage?: boolean }> = ({ onSignInClick, hideAgents, hideAuthButtons, isLandingPage = false }) => {
+export const Navbar: React.FC<{ onSignInClick?: () => void; hideAgents?: boolean; hideAuthButtons?: boolean; isLandingPage?: boolean }> = ({ onSignInClick, hideAgents = true, hideAuthButtons = true, isLandingPage = false }) => {
   const { repoPath, setRepoPath, clearRepo } = useRepo();
   const { user, loading: authLoading, signOut } = useAuth();
   const [scrolled, setScrolled] = useState(false);
