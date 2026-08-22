@@ -17,12 +17,20 @@ import { AuthProvider, useAuth } from '../lib/authContext'
 function AppRouter() {
   const { user, loading } = useAuth();
   const pathname = window.location.pathname;
+  const hash = typeof window !== 'undefined' ? window.location.hash : '';
+  const search = typeof window !== 'undefined' ? window.location.search : '';
 
-  // Show a spinner while we wait for the session to resolve
-  if (loading) {
+  // Check if we are currently handling an OAuth redirect hash or auth code
+  const isProcessingOAuth = hash.includes('access_token=') || hash.includes('type=recovery') || search.includes('code=');
+
+  console.log('[RouteGuard] render:', { pathname, loading, isAuthenticated: !!user, userEmail: user?.email, isProcessingOAuth });
+
+  // Show a spinner while session is loading or while parsing OAuth redirect params
+  if (loading || (isProcessingOAuth && !user)) {
     return (
-      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center flex-col gap-3">
         <div className="w-8 h-8 border-4 border-[#2563EB]/30 border-t-[#2563EB] rounded-full animate-spin" />
+        <p className="text-sm font-medium text-[#6B7280]">Authenticating session...</p>
       </div>
     );
   }
@@ -37,10 +45,9 @@ function AppRouter() {
     return <DocsPage />;
   }
 
-  // Guard: unauthenticated users go to /auth
+  // Guard: unauthenticated users see AuthPage without wiping URL hash
   if (!user) {
-    window.location.replace('/auth');
-    return null;
+    return <AuthPage />;
   }
   if (pathname.includes('/reports')) {
     return <ReportsPage />;

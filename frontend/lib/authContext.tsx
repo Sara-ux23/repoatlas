@@ -42,14 +42,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Load existing session on mount
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(({ data, error }) => {
+      console.log('[AuthContext] getSession:', {
+        hasSession: !!data.session,
+        userEmail: data.session?.user?.email ?? null,
+        error: error?.message ?? null,
+      });
       setSession(data.session);
       setUser(data.session?.user ?? null);
       setLoading(false);
     });
 
     // Subscribe to auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      console.log('[AuthContext] onAuthStateChange event:', event, {
+        hasSession: !!newSession,
+        userEmail: newSession?.user?.email ?? null,
+      });
       setSession(newSession);
       setUser(newSession?.user ?? null);
       setLoading(false);
