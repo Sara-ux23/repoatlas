@@ -58,17 +58,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  const getRedirectUrl = () => {
+    const envUrl = (import.meta as any).env?.VITE_SITE_URL || (import.meta as any).env?.VITE_PUBLIC_SITE_URL;
+    if (envUrl) return envUrl;
+    if (typeof window !== 'undefined' && window.location?.origin) {
+      return window.location.origin;
+    }
+    return 'https://repoatlas-opal.vercel.app';
+  };
+
   const signInWithGitHub = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'github',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: getRedirectUrl() },
     });
   };
 
   const signInWithGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: getRedirectUrl() },
     });
   };
 
@@ -81,14 +90,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: window.location.origin },
+      options: { emailRedirectTo: getRedirectUrl() },
     });
     return error?.message ?? null;
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    window.location.replace('/auth');
+    if (typeof window !== 'undefined') {
+      window.location.replace('/auth');
+    }
   };
 
   return (

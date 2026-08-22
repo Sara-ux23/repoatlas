@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 class RecordRequest(BaseModel):
     repo_url: str
-    base_url: Optional[str] = "http://localhost:3001"
+    base_url: Optional[str] = None
     session_data: Optional[Dict[str, Any]] = None
     force_refresh: Optional[bool] = False
 
@@ -71,7 +71,7 @@ async def trigger_recording(req: RecordRequest, background: BackgroundTasks):
             message="Cached recording found.",
         )
 
-    base_url = req.base_url or "http://localhost:3001"
+    base_url = req.base_url or os.getenv("FRONTEND_URL", "https://repoatlas-opal.vercel.app")
     logger.info(f"[video] Starting UI recording for {repo_id} ({req.repo_url})")
     background.add_task(_run_recording, repo_id, req.repo_url, base_url, req.session_data)
     return RecordResponse(

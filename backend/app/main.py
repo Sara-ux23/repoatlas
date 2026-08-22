@@ -21,7 +21,7 @@ app = FastAPI(title="RepoAtlas AI", version="0.1.0")
 
 import os
 
-frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3001")
+frontend_url = os.getenv("FRONTEND_URL", "https://repoatlas-opal.vercel.app")
 
 app.add_middleware(
     CORSMiddleware,

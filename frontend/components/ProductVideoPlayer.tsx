@@ -61,7 +61,7 @@ export function ProductVideoPlayer({ repoUrl, analysisResult, onSelectFile }: Pr
     try {
       const resp: RecordingResponse = await recordWalkthrough({
         repo_url: repoUrl,
-        base_url: typeof window !== 'undefined' ? window.location.origin.replace('3000', '3001').replace('3001', '3001') : 'http://localhost:3001',
+        base_url: typeof window !== 'undefined' ? window.location.origin : 'https://repoatlas-opal.vercel.app',
         session_data: buildSessionData(),
         force_refresh: forceRefresh,
       });
