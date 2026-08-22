@@ -65,29 +65,27 @@ export const AnalyzingLoader: React.FC<AnalyzingLoaderProps> = ({ visible, done 
   const pct = useSimulatedProgress(visible, done);
 
   return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          key="analyzing-loader"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 8 }}
-          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-4xl mx-auto mt-6"
-        >
-          {/* Character */}
-          <div className="flex justify-center mb-2">
-            <Character />
-          </div>
+    <div className="max-w-4xl mx-auto mt-6">
+      {/* Character video animation — shown under repo section */}
+      <div className="flex justify-center mb-2">
+        <Character />
+      </div>
 
-          {/* Progress bar */}
-          <div
+      {/* Progress bar — shown while analyzing */}
+      <AnimatePresence>
+        {visible && (
+          <motion.div
+            key="analyzing-loader"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
             role="progressbar"
             aria-valuenow={pct}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-label="Analysis progress"
-            className="relative w-full h-14 rounded-2xl border border-[#C8E6C9] bg-white overflow-hidden shadow-sm"
+            className="relative w-full h-14 rounded-2xl border border-[#C8E6C9] bg-white overflow-hidden shadow-sm mt-4"
           >
             {/* Green fill */}
             <motion.div
@@ -114,9 +112,9 @@ export const AnalyzingLoader: React.FC<AnalyzingLoaderProps> = ({ visible, done 
                 LOADING {pct}%
               </span>
             </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
